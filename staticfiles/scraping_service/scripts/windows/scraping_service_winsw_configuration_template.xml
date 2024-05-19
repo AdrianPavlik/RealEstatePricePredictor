@@ -1,0 +1,6 @@
+<service>
+  <id>{ServiceId}</id>
+  <name>{ServiceName}</name>
+  <description>{ServiceDescription}</description>
+  <executable>{ExecutablePath}</executable>
+</service>

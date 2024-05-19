@@ -1,0 +1,13 @@
+[Unit]
+Description=SimpleRealitySKScrapingServiceController
+After=docker.service
+
+[Service]
+WorkingDirectory=/home/scraping-control/RealEstateWebScraper/RealitySKScrapingService
+ExecStart=/home/scraping-control/RealEstateWebScraper/RealitySKScrapingService/start.sh
+User=scraping-control
+Restart=on-failure
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

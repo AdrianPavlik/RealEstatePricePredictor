@@ -1,0 +1,10 @@
+[Unit]
+Description=This service ensures that the data are scraped so the prices can be predicted.
+
+[Service]
+ExecStart=/usr/bin/python3 /home/your_username/.RealEstateWebScraper/.py
+Restart=always
+User=your_username
+
+[Install]
+WantedBy=multi-user.target
