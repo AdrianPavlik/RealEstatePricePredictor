@@ -1,0 +1,422 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Price Predictor - Stored Data {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    <main>
+        <div class="container-fluid px-4">
+            <div class="card mb-4 mt-4" style="border-radius: 20px; border-style: hidden">
+                <div class="card-body shadow" style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px;">
+                    <table class="table table-striped">
+                        <div class="d-flex justify-content-center">
+                            <label for="perPageSelect" class="form-label d-flex flex-column justify-content-center">Showing</label>
+                            <select id="perPageSelect" class="form-select ms-1" onchange="changePerPage(this)"
+                                    style="max-width: 90px">
+                                <option value="10" {% if properties.paginator.per_page == 10 %}selected{% endif %}>10
+                                </option>
+                                <option value="50" {% if properties.paginator.per_page == 50 %}selected{% endif %}>50
+                                </option>
+                                <option value="100" {% if properties.paginator.per_page == 100 %}selected{% endif %}>
+                                    100
+                                </option>
+                                <option value="500" {% if properties.paginator.per_page == 500 %}selected{% endif %}>
+                                    500
+                                </option>
+                                <option value="1000" {% if properties.paginator.per_page == 1000 %}selected{% endif %}>
+                                    1000
+                                </option>
+                            </select>
+                            <label for="perPageSelect"
+                                   class="form-label d-flex flex-column justify-content-center ms-1">properties per
+                                page</label>
+                        </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    {% if has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page=1&per_page={{ properties.paginator.per_page }}"
+                                               aria-label="First">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ properties.previous_page_number }}&per_page={{ properties.paginator.per_page }}"
+                                               aria-label="Previous">
+                                                <span aria-hidden="true">&lsaquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if page_numbers.0 > 1 %}
+                                        <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                                        <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                    {% endif %}
+                                    {% for num in page_numbers %}
+                                        <li class="page-item {% if num == properties.number %}active{% endif %}">
+                                            <a class="page-link"
+                                               href="?page={{ num }}&per_page={{ properties.paginator.per_page }}">{{ num }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    {% if page_numbers|last < properties.paginator.num_pages %}
+                                        <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                        <li class="page-item"><a class="page-link"
+                                                                 href="?page={{ properties.paginator.num_pages }}&per_page={{ properties.paginator.per_page }}">{{ properties.paginator.num_pages }}</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ properties.next_page_number }}&per_page={{ properties.paginator.per_page }}"
+                                               aria-label="Next">
+                                                <span aria-hidden="true">&rsaquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ properties.paginator.num_pages }}&per_page={{ properties.paginator.per_page }}"
+                                               aria-label="Last">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        <thead>
+                        <tr>
+                            <th><i class="fas fa-map-marker-alt" title="City"></i></th>
+                            <th><i class="fas fa-road" title="Street"></i></th>
+                            <th><i class="fas fa-building" title="Type"></i></th>
+                            <th><i class="fas fa-hand-holding-usd" title="Offer Type"></i></th>
+                            <th><i class="fas fa-expand-arrows-alt" title="Land Area"></i></th>
+                            <th><i class="fas fa-euro-sign" title="Price"></i></th>
+                            <th><i class="fas fa-user-shield" title="Ownership"></i></th>
+                            <th><i class="fas fa-tools" title="Condition"></i></th>
+                            <th><i class="fas fa-calendar-alt" title="Year of Construction"></i></th>
+                            <th><i class="fas fa-door-closed" title="Rooms"></i></th>
+                            <th><i class="fas fa-arrow-up" title="Lift"></i></th>
+                            <th><i class="fas fa-car" title="Parking Space"></i></th>
+                            <th><i class="fas fa-warehouse" title="Basement"></i></th>
+                            <th><i class="fas fa-umbrella-beach" title="Gazebo"></i></th>
+                            <th><i class="fas fa-square-full" title="Terrace"></i></th>
+                            <th><i class="fas fa-swimmer" title="Pool"></i></th>
+                            <th><i class="fas fa-snowflake" title="Air Conditioning"></i></th>
+                            <th><i class="fas fa-hot-tub" title="Sauna"></i></th>
+                            <th><i class="fas fa-columns" title="Balcony"></i></th>
+                            <th><i class="fas fa-warehouse" title="Garage"></i></th>
+                            <th><i class="fas fa-image" title="Loggia"></i></th>
+                            <th><i class="fas fa-tree" title="Garden"></i></th>
+                            <th><i class="fas fa-fire" title="Fireplace"></i></th>
+                            <th><i class="fas fa-bath" title="Bathroom"></i></th>
+                            <th><i class="fas fa-ruler-combined" title="New Building"></i></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for property in properties %}
+                            <tr data-id="{{ property.id }}">
+                                <td contenteditable="true" data-field="city" onblur="updateProperty(this)"
+                                    id="{{ property.id }}"
+                                    style="max-height: 20px; white-space: pre-wrap;">{{ property.city }}</td>
+                                <td contenteditable="true" data-field="street"
+                                    onblur="updateProperty(this)">{{ property.street }}</td>
+                                <td contenteditable="true" data-field="type"
+                                    onblur="updateProperty(this)">{{ property.type }}</td>
+                                <td contenteditable="true" data-field="offer_type"
+                                    onblur="updateProperty(this)">{{ property.offer_type }}</td>
+                                <td contenteditable="true" data-field="land_area"
+                                    onblur="updateProperty(this)">{{ property.land_area }}</td>
+                                <td contenteditable="true" data-field="price"
+                                    onblur="updateProperty(this)">{{ property.price }}</td>
+                                <td contenteditable="true" data-field="ownership"
+                                    onblur="updateProperty(this)">{{ property.ownership }}</td>
+                                <td contenteditable="true" data-field="property_condition"
+                                    onblur="updateProperty(this)">{{ property.property_condition }}</td>
+                                <td contenteditable="true" data-field="year_of_construction"
+                                    onblur="updateProperty(this)">{{ property.year_of_construction }}</td>
+                                <td contenteditable="true" data-field="number_of_rooms"
+                                    onblur="updateProperty(this)">{{ property.number_of_rooms }}</td>
+                                <td onclick="toggleBoolean(this, 'lift')" style="cursor: pointer;">
+                                    <i class="fas {% if property.lift %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="lift"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'parking_space')" style="cursor: pointer;">
+                                    <i class="fas {% if property.parking_space %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="parking_space"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'basemenet')" style="cursor: pointer;">
+                                    <i class="fas {% if property.basemenet %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="basemenet"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'gazebo')" style="cursor: pointer;">
+                                    <i class="fas {% if property.gazebo %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="gazebo"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'terrace')" style="cursor: pointer;">
+                                    <i class="fas {% if property.terrace %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="terrace"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'pool')" style="cursor: pointer;">
+                                    <i class="fas {% if property.pool %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="pool"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'air_conditioning')" style="cursor: pointer;">
+                                    <i class="fas {% if property.air_conditioning %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="air_conditioning"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'sauna')" style="cursor: pointer;">
+                                    <i class="fas {% if property.sauna %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="sauna"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'balcony')" style="cursor: pointer;">
+                                    <i class="fas {% if property.balcony %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="balcony"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'garage')" style="cursor: pointer;">
+                                    <i class="fas {% if property.garage %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="garage"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'loggia')" style="cursor: pointer;">
+                                    <i class="fas {% if property.loggia %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="loggia"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'garden')" style="cursor: pointer;">
+                                    <i class="fas {% if property.garden %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="garden"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'fireplace')" style="cursor: pointer;">
+                                    <i class="fas {% if property.fireplace %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="fireplace"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'bathroom')" style="cursor: pointer;">
+                                    <i class="fas {% if property.bathroom %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="bathroom"></i>
+                                </td>
+                                <td onclick="toggleBoolean(this, 'new_building')" style="cursor: pointer;">
+                                    <i class="fas {% if property.new_building %}fa-check{% else %}fa-times{% endif %}"
+                                       data-field="new_building"></i>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th><i class="fas fa-map-marker-alt" title="City"></i></th>
+                            <th><i class="fas fa-road" title="Street"></i></th>
+                            <th><i class="fas fa-building" title="Type"></i></th>
+                            <th><i class="fas fa-hand-holding-usd" title="Offer Type"></i></th>
+                            <th><i class="fas fa-expand-arrows-alt" title="Land Area"></i></th>
+                            <th><i class="fas fa-euro-sign" title="Price"></i></th>
+                            <th><i class="fas fa-user-shield" title="Ownership"></i></th>
+                            <th><i class="fas fa-tools" title="Condition"></i></th>
+                            <th><i class="fas fa-calendar-alt" title="Year of Construction"></i></th>
+                            <th><i class="fas fa-door-closed" title="Rooms"></i></th>
+                            <th><i class="fas fa-arrow-up" title="Lift"></i></th>
+                            <th><i class="fas fa-car" title="Parking Space"></i></th>
+                            <th><i class="fas fa-warehouse" title="Basement"></i></th>
+                            <th><i class="fas fa-umbrella-beach" title="Gazebo"></i></th>
+                            <th><i class="fas fa-square-full" title="Terrace"></i></th>
+                            <th><i class="fas fa-swimmer" title="Pool"></i></th>
+                            <th><i class="fas fa-snowflake" title="Air Conditioning"></i></th>
+                            <th><i class="fas fa-hot-tub" title="Sauna"></i></th>
+                            <th><i class="fas fa-columns" title="Balcony"></i></th>
+                            <th><i class="fas fa-warehouse" title="Garage"></i></th>
+                            <th><i class="fas fa-image" title="Loggia"></i></th>
+                            <th><i class="fas fa-tree" title="Garden"></i></th>
+                            <th><i class="fas fa-fire" title="Fireplace"></i></th>
+                            <th><i class="fas fa-bath" title="Bathroom"></i></th>
+                            <th><i class="fas fa-ruler-combined" title="New Building"></i></th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                    <div class="d-flex justify-content-center">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {% if has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1&per_page={{ properties.paginator.per_page }}"
+                                           aria-label="First">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% if has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ properties.previous_page_number }}&per_page={{ properties.paginator.per_page }}"
+                                           aria-label="Previous">
+                                            <span aria-hidden="true">&lsaquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% if page_numbers.0 > 1 %}
+                                    <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                {% endif %}
+                                {% for num in page_numbers %}
+                                    <li class="page-item {% if num == properties.number %}active{% endif %}">
+                                        <a class="page-link"
+                                           href="?page={{ num }}&per_page={{ properties.paginator.per_page }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                                {% if page_numbers|last < properties.paginator.num_pages %}
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                    <li class="page-item"><a class="page-link"
+                                                             href="?page={{ properties.paginator.num_pages }}&per_page={{ properties.paginator.per_page }}">{{ properties.paginator.num_pages }}</a>
+                                    </li>
+                                {% endif %}
+                                {% if has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ properties.next_page_number }}&per_page={{ properties.paginator.per_page }}"
+                                           aria-label="Next">
+                                            <span aria-hidden="true">&rsaquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% if has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ properties.paginator.num_pages }}&per_page={{ properties.paginator.per_page }}"
+                                           aria-label="Last">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Popup toast body -->
+    <div class="toast-container position-fixed end-0 bottom-0 mb-5-" aria-live="polite" aria-atomic="true"
+         style="width: 300px; max-height: 200px;">
+    </div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script>
+        document.querySelectorAll('[contenteditable]').forEach(element => {
+            element.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                }
+            });
+            element.addEventListener('input', function (event) {
+                if (this.innerText.length > 40) {
+                    this.innerText = this.innerText.substring(0, 40);
+                    placeCaretAtEnd(this);
+                }
+            });
+        });
+
+        function placeCaretAtEnd(el) {
+            el.focus();
+            if (typeof window.getSelection != "undefined"
+                && typeof document.createRange != "undefined") {
+                var range = document.createRange();
+                range.selectNodeContents(el);
+                range.collapse(false);
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else if (typeof document.body.createTextRange != "undefined") {
+                var textRange = document.body.createTextRange();
+                textRange.moveToElementText(el);
+                textRange.collapse(false);
+                textRange.select();
+            }
+        }
+
+        function changePerPage(select) {
+            const perPage = select.value;
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('per_page', perPage);
+            window.location.search = urlParams.toString();
+        }
+
+        async function toggleBoolean(cell, field) {
+            var icon = cell.querySelector('svg');
+            if (icon && cell.closest('tr')) {
+                var id = cell.closest('tr').dataset.id;
+                var newValue = icon.classList.contains('fa-times') ? 1 : 0;
+
+                // Toggle classes based on new value
+                icon.classList.toggle('fa-check', newValue === 1);
+                icon.classList.toggle('fa-times', newValue === 0);
+
+                await updateProperty(id, field, newValue);
+            } else {
+                console.error('Could not find the icon element or the parent row', {cell, icon});
+            }
+        }
+
+        async function updateProperty(arg1, field, newValue) {
+            let id, editableElement;
+
+            if (arg1 && typeof arg1 === 'object' && arg1.dataset) {
+                editableElement = arg1;
+                field = editableElement.dataset.field;
+                newValue = editableElement.innerText;
+                id = editableElement.closest('tr').dataset.id;
+            } else {
+                id = arg1;
+            }
+            const csrfToken = getCookie('csrftoken');
+            const response = await fetch(`update-property/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({id: id, field: field, newValue: newValue}),
+            });
+            if (!response.ok) {
+                showToast(ToastLevel.Error, 'Offer', 'Updating database failed');
+            } else {
+                console.log(response.statusText)
+                showToast(ToastLevel.Success, 'Offer', 'Updating database was successful');
+            }
+        }
+
+        /**
+         * @param {ToastLevel} toastLevel
+         * @param {string} title
+         * @param {string} body
+         */
+        function showToast(toastLevel, title, body) {
+            var messageColored = `<i style="color: ${toastLevel}">${body}</i>`;
+            var newToast = $('<div class="toast end-0 bottom-0 mx-3" style="width: 250px; margin-bottom: 10px;" role="alert" aria-live="assertive" aria-atomic="true">' +
+                '<div class="toast-header">' +
+                '<strong class="mr-auto">' + title + '</strong>' +
+                '</div>' +
+                '<div class="toast-body">' +
+                messageColored +
+                '</div>' +
+                '</div>');
+
+            $('.toast-container').prepend(newToast);
+            let toast = new bootstrap.Toast(newToast[0]);
+            toast.show();
+
+            // Remove toast after it was displayed
+            setTimeout(function () {
+                newToast.remove();
+            }, 7000);
+        }
+    </script>
+{% endblock javascripts %}

@@ -1,0 +1,574 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Price Predictor - Interactive Map {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        .dropdown-item.active {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .noUi-tooltip {
+            display: none;
+            font-size: 10px;
+            padding: 4px 8px;
+        }
+
+        .tooltip-visible .noUi-tooltip {
+            display: block;
+        }
+
+        .noUi-handle {
+            cursor: pointer;
+        }
+
+        .noUi-handle:hover {
+            cursor: grab;
+        }
+
+        .noUi-handle:active {
+            cursor: grabbing;
+        }
+
+        .form-check-label, .form-check-input {
+            cursor: pointer;
+        }
+
+        input[type="text"] {
+            background-color: transparent;
+            border: none;
+            color: #000;
+            text-align: center;
+            width: 100px;
+        }
+
+        input[type="text"]:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"]:focus {
+            background-color: #fff;
+            outline: none;
+        }
+
+        .legend-container {
+            position: absolute;
+            bottom: 10px;
+            right: 200px;
+            width: 50px;
+            border-radius: 5px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+        }
+
+        .legend-label {
+            flex: 1;
+            text-align: start;
+            font-size: 16px;
+        }
+
+        .legend-label:first-child {
+            left: 0;
+            text-align: left;
+        }
+
+        .legend-label:last-child {
+            right: 0px;
+            text-align: right;
+        }
+
+        .legend-gradient {
+            background: linear-gradient(to right, #ffffff, #add8e6, #0000ff); /* white to light blue to blue */
+            line-height: 18px;
+            width: 200px;
+            color: #555;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+    <main>
+        <div class="container mt-5 shadow p-3"
+             style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px;">
+            <div class="col-md-12">
+                <h5 class="text-center mb-3">Filters for Interactive Map</h5>
+                <div class="d-flex flex-row">
+                    <label for="dataFor" class="form-label mt-auto" style="min-width: 110px">Data for</label>
+                    <select id="dataFor" class="form-select">
+                        <option value="price">Property prices</option>
+                        <option value="age">Property age</option>
+                        <option value="number_of_rooms">Number of rooms</option>
+                    </select>
+                </div>
+                <div class="d-flex flex-row mt-2">
+                    <label for="propertyTypeSelect" class="form-label mt-auto" style="min-width: 110px">Property
+                        Type</label>
+                    <select id="propertyTypeSelect" class="form-select">
+                        <option selected>Choose...</option>
+                        {% for type in database_stats.unique_types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="d-flex flex-row mt-2">
+                    <label for="featuresDropdown" class="form-label mt-auto" style="min-width: 110px">Features</label>
+                    <div class="dropdown" id="featuresDropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="featureDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Select
+                        </button>
+                        <ul class="dropdown-menu" style="overflow-x: auto; overflow-y: hidden;"
+                            aria-labelledby="featureDropdown">
+                            <li><a class="dropdown-item" href="#" data-value="lift">Lift</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="parking_space">Parking Space</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="basement">Basement</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="gazebo">Gazebo</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="terrace">Terrace</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="pool">Pool</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="air_conditioning">Air Conditioning</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="sauna">Sauna</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="balcony">Balcony</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="garage">Garage</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="loggia">Loggia</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="garden">Garden</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="fireplace">Fireplace</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="bathroom">Bathroom</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="new_building">New Building</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-row mt-2">
+                    <label class="form-label mt-auto" style="min-width: 110px">Offer Type</label>
+                    <div class="d-flex flex-row">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="offerType" id="offerType1" value="Predaj"
+                                   checked>
+                            <label class="form-check-label" for="offerType1">
+                                Predaj
+                            </label>
+                        </div>
+                        <div class="form-check ms-2">
+                            <input class="form-check-input" type="radio" name="offerType" id="offerType2"
+                                   value="Prenájom">
+                            <label class="form-check-label" for="offerType2">
+                                Prenájom
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="priceSlider" class="form-label mt-2">Price Range
+                    <input type="text" id="minPrice" class="form-control d-inline-block" style="width: 200px;"
+                           aria-label="Minimum price" min="{{ database_stats.min_price }}">
+                    -
+                    <input type="text" id="maxPrice" class="form-control d-inline-block" style="width: 200px;"
+                           aria-label="Maximum price" max="{{ database_stats.max_price }}">
+                </label>
+                <div id="priceSlider" class="slider m-auto" style="max-width: 90%;"></div>
+
+                <div class="mt-4 d-flex flex-row justify-content-end">
+                    <button type="button" class="btn btn-secondary me-2" onclick="resetFilters()">Reset Filters</button>
+                    <button type="button" class="btn btn-primary" onclick="generateMap()">Generate</button>
+                </div>
+            </div>
+        </div>
+        <div class="bg-dark m-auto mt-5" id="map" style="height: 600px; width: 80%; border-radius: 15px"></div>
+    </main>
+    <!-- Popup toast body -->
+    <div class="toast-container position-fixed end-0 bottom-0 mb-5-" aria-live="polite" aria-atomic="true"
+         style="width: 300px; max-height: 200px;">
+    </div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script>
+        var map = L.map('map').setView([48.6690, 19.6990], 8);
+        var dataLayers = L.featureGroup().addTo(map);
+        var legend = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdownItems = document.querySelectorAll('.dropdown-item');
+            const dropdown = document.getElementById('featureDropdown');
+            const selectedFeatures = [];
+
+            dropdownItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const value = this.getAttribute('data-value');
+                    const index = selectedFeatures.indexOf(value);
+
+                    if (index > -1) {
+                        selectedFeatures.splice(index, 1);
+                        this.classList.remove('active');
+                    } else {
+                        selectedFeatures.push(value);
+                        this.classList.add('active');
+                    }
+
+                    dropdown.textContent = selectedFeatures.length > 0 ? `Selected: ${selectedFeatures.length}` : 'Select';
+                });
+            });
+
+            var slider = document.getElementById('priceSlider');
+            noUiSlider.create(slider, {
+                start: [{{ database_stats.min_price }}, {{ database_stats.max_price }}],
+                connect: true,
+                range: {
+                    'min': {{ database_stats.min_price }},
+                    'max': {{ database_stats.max_price }}
+                },
+                tooltips: true,
+                format: wNumb({
+                    decimals: 0,
+                    thousand: ',',
+                    suffix: ' €'
+                })
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            generateMap()
+        });
+
+        async function generateMap() {
+            try {
+                const dataFor = document.getElementById('dataFor').value;
+                let sql = generateSQL();
+                const response = await fetch('get-diagram-values/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // Ensure CSRF token for Django
+                    },
+                    body: JSON.stringify({'sql_query': sql})
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+
+                const data = await response.json();
+                switch (dataFor) {
+                    case 'price':
+                        visualizeHeatMap(aggregateHeatmapData(data['diagram_values']))
+                        break
+                    case 'age':
+                        visualizeDataOnMap(aggregateAndMapDataByAge(data['diagram_values']))
+                        break
+                    case 'number_of_rooms':
+                        visualizeDataOnMap(aggregateAndMapDataByRooms(data['diagram_values']))
+                        break
+                    default:
+                        visualizeDataOnMap(aggregateAndMapDataByAge(data['diagram_values']))
+                        break
+                }
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        }
+
+        function generateSQL() {
+            const propertyType = document.getElementById('propertyTypeSelect').value;
+            const offerType = document.querySelector('input[name="offerType"]:checked').value;
+            const priceRange = document.getElementById('priceSlider').noUiSlider.get();
+
+            let whereClauses = [];
+
+            if (propertyType && propertyType !== "Choose...") {
+                whereClauses.push(`type = '${propertyType}'`);
+            }
+            if (offerType) {
+                whereClauses.push(`offer_type = '${offerType}'`);
+            }
+            if (priceRange && priceRange.length === 2) {
+                whereClauses.push(`CAST(price AS INTEGER) >= ${cleanPrice(priceRange[0])} AND CAST(price AS INTEGER) <= ${cleanPrice(priceRange[1])}`);
+            }
+
+            const featureItems = document.querySelectorAll('.dropdown-menu .dropdown-item.active');
+            featureItems.forEach(item => {
+                const feature = item.getAttribute('data-value');
+                whereClauses.push(`${feature} = 1`);
+            });
+
+            // Construct the SQL query
+            let sql = "SELECT * FROM properties";
+            if (whereClauses.length > 0) {
+                sql += " WHERE " + whereClauses.join(' AND ');
+            }
+            return sql;
+        }
+
+        function aggregateAndMapDataByRooms(properties) {
+            const roomBrackets = ['1 room', '2 rooms', '3 rooms', '4 rooms', '5+ rooms'];
+            const cityRoomDistribution = {};
+
+            properties.forEach(property => {
+                const city = property.city;
+                if (city) {
+                    if (!cityRoomDistribution[city]) {
+                        cityRoomDistribution[city] = {
+                            coordinates: {
+                                latitude: property.latitude || 0,  // Ensure latitude and longitude are set or default to 0
+                                longitude: property.longitude || 0
+                            }
+                        };
+                        roomBrackets.forEach(bracket => {
+                            cityRoomDistribution[city][bracket] = {count: 0, total: 0, prices: []};
+                        });
+                    }
+
+                    const numberOfRooms = parseInt(property.number_of_rooms, 10);
+                    const roomBracket = determineRoomBracket(numberOfRooms);
+
+                    if (!cityRoomDistribution[city][roomBracket]) {
+                        cityRoomDistribution[city][roomBracket] = {count: 0, total: 0, prices: []};
+                    }
+
+                    const price = parseInt(property.price, 10);
+                    if (!isNaN(price)) {
+                        cityRoomDistribution[city][roomBracket].count++;
+                        cityRoomDistribution[city][roomBracket].total += price;
+                        cityRoomDistribution[city][roomBracket].prices.push(price);
+                    }
+                }
+            });
+
+            return Object.keys(cityRoomDistribution).map(city => {
+                const coordinates = cityRoomDistribution[city].coordinates;
+                const mappedData = roomBrackets.map(roomBracket => {
+                    const data = cityRoomDistribution[city][roomBracket];
+                    return {
+                        bracket: roomBracket,
+                        averagePrice: data.count > 0 ? data.total / data.count : 0,
+                        count: data.count,
+                        prices: data.prices
+                    };
+                });
+
+                return {
+                    city: city,
+                    coordinates: coordinates,
+                    data: mappedData
+                };
+            });
+        }
+
+        function aggregateAndMapDataByAge(properties) {
+            const currentYear = new Date().getFullYear();
+            const cityAgeDistribution = {};
+            const ageBrackets = ['0-10 years', '11-20 years', '21-30 years', '31-40 years', '41-50 years', 'Over 50 years'];
+
+            properties.forEach(property => {
+                const city = property.city;
+                if (city) {
+                    if (!cityAgeDistribution[city]) {
+                        cityAgeDistribution[city] = {
+                            coordinates: {
+                                latitude: property.latitude,
+                                longitude: property.longitude
+                            }
+                        };
+                        ageBrackets.forEach(bracket => {
+                            cityAgeDistribution[city][bracket] = {count: 0, total: 0, prices: []};
+                        });
+                    }
+
+                    const yearOfConstruction = parseInt(property.year_of_construction, 10);
+                    if (!isNaN(yearOfConstruction)) {
+                        const age = currentYear - yearOfConstruction;
+                        const ageBracket = determineAgeBracket(age);
+
+                        const price = parseInt(property.price, 10);
+                        if (!isNaN(price)) {
+                            cityAgeDistribution[city][ageBracket].count++;
+                            cityAgeDistribution[city][ageBracket].total += price;
+                            cityAgeDistribution[city][ageBracket].prices.push(price);
+                        }
+                    }
+                }
+            });
+
+            return Object.keys(cityAgeDistribution).map(city => {
+                const coordinates = cityAgeDistribution[city].coordinates;
+                const ageBracketsData = cityAgeDistribution[city];
+                const mappedData = ageBrackets.map(ageBracket => {
+                    const data = ageBracketsData[ageBracket];
+                    return {
+                        bracket: ageBracket,
+                        averagePrice: data.count > 0 ? data.total / data.count : 0,
+                        count: data.count,
+                        prices: data.prices
+                    };
+                });
+
+                return {
+                    city: city,
+                    coordinates: coordinates,
+                    data: mappedData
+                };
+            });
+        }
+
+        function aggregateHeatmapData(properties) {
+            const clusterRadius = 0.01;
+            let aggregatedData = [];
+
+            properties.forEach(property => {
+
+                const {latitude, longitude, price} = property;
+
+                if (!latitude || !longitude || !price) {
+                    return;
+                }
+
+                let foundCluster = false;
+                for (let i = 0; i < aggregatedData.length; i++) {
+                    let cluster = aggregatedData[i];
+                    if (Math.abs(cluster.latitude - latitude) <= clusterRadius && Math.abs(cluster.longitude - longitude) <= clusterRadius) {
+                        cluster.totalPrice += price;
+                        cluster.count++;
+                        cluster.averagePrice = cluster.totalPrice / cluster.count;
+                        foundCluster = true;
+                        break;
+                    }
+                }
+
+                if (!foundCluster) {
+                    aggregatedData.push({
+                        latitude,
+                        longitude,
+                        totalPrice: price,
+                        count: 1,
+                        averagePrice: price
+                    });
+                }
+            });
+
+            return aggregatedData.map(cluster => {
+                return {
+                    lat: cluster.latitude,
+                    lng: cluster.longitude,
+                    intensity: cluster.averagePrice
+                };
+            });
+        }
+
+        function visualizeDataOnMap(data) {
+            dataLayers.clearLayers();
+            if (legend !== null) {
+                legend.remove();
+            }
+
+            data.forEach(cityData => {
+                const latLng = [cityData.coordinates.latitude, cityData.coordinates.longitude];
+                const totalProperties = cityData.data.reduce((acc, item) => acc + item.count, 0);
+
+                var circle = L.circleMarker(latLng, {
+                    radius: Math.sqrt(totalProperties) * 2,
+                    fillColor: getColorForCity(cityData.city),
+                    color: "#000",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(dataLayers);
+
+                let popupContent = `<strong>${cityData.city}</strong><br/>`;
+                cityData.data.forEach(bracket => {
+                    popupContent += `${bracket.bracket}: ${bracket.count} properties<br/>`;
+                });
+
+                circle.bindPopup(popupContent);
+            });
+        }
+
+        function visualizeHeatMap(data) {
+            dataLayers.clearLayers();
+            if (legend !== null) {
+                legend.remove();
+            }
+
+            L.heatLayer(data, {
+                radius: 25,
+                blur: 0,
+                maxZoom: 17,
+            }).addTo(dataLayers);
+
+            legend = L.control({position: 'bottomright'});
+
+            const priceRange = document.getElementById('priceSlider').noUiSlider.get();
+            legend.onAdd = function (map) {
+                var div = L.DomUtil.create('div', 'legend-container'),
+                    grades = [priceRange[0], priceRange[1]], // assuming these are your min and max values
+                    labels = [];
+
+                var gradientBar = L.DomUtil.create('div', 'legend-gradient', div);
+
+                var labelContainer = L.DomUtil.create('div', 'legend-labels', div);
+
+                var minLabel = L.DomUtil.create('div', 'legend-label', labelContainer);
+                minLabel.innerHTML = grades[0].toLocaleString();
+
+                var maxLabel = L.DomUtil.create('div', 'legend-label', labelContainer);
+                maxLabel.innerHTML = grades[1].toLocaleString();
+
+                return div;
+            };
+
+            legend.addTo(map);
+        }
+
+        function resetFilters() {
+            const dataFor = document.getElementById('dataFor');
+            const propertyTypeSelect = document.getElementById('propertyTypeSelect');
+            const offerTypeRadios = document.querySelectorAll('input[name="offerType"]');
+            const featureDropdown = document.getElementById('featureDropdown');
+            const featureDropdownItems = document.querySelectorAll('#featuresDropdown .dropdown-item');
+            const priceSlider = document.getElementById('priceSlider').noUiSlider;
+            const averagePricePer = document.getElementById('averagePricePer');
+            const defaultMinPrice = {{ database_stats.min_price }};
+            const defaultMaxPrice = {{ database_stats.max_price }};
+
+            dataFor.value = 'price'
+
+            propertyTypeSelect.selectedIndex = 0;
+
+            offerTypeRadios.forEach(radio => {
+                radio.checked = radio.value === 'Predaj';
+            });
+
+            featureDropdown.textContent = 'Select';
+            featureDropdownItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+            averagePricePer.value = 'months'
+
+            priceSlider.set([defaultMinPrice, defaultMaxPrice]);
+
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+        }
+    </script>
+{% endblock javascripts %}

@@ -1,0 +1,967 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Price Predictor - Settings {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <style>
+        .custom-invalid-border {
+            border: 2px solid #dc3545;
+        }
+
+        #scrapeSupport:link {
+            text-decoration: none;
+            color: black;
+        }
+
+        #scrapeSupport:visited {
+            text-decoration: none;
+            color: black;
+        }
+
+        #scrapeSupport:hover {
+            color: mediumturquoise;
+        }
+
+        #scrapeSupport:active {
+            color: black;
+        }
+
+        #scraperStatus:link {
+            text-decoration: none;
+            color: white;
+        }
+
+        #scraperStatus:visited {
+            text-decoration: none;
+            color: white;
+        }
+
+        #scraperStatus:hover {
+            color: white;
+        }
+
+        #scraperStatus:active {
+            color: black;
+        }
+
+        .overlay {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0s 0.5s;
+            border-radius: 15px;
+        }
+
+        .position-relative:hover .overlay {
+            visibility: visible;
+            opacity: 1;
+            transition-delay: 0s;
+        }
+
+        .status-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+    <main>
+        <div class="container-fluid px-4">
+            <div class="mt-4 d-flex flex-row row justify-content-center">
+                <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card" style="border-style: hidden">
+                        <div class="card-body shadow"
+                             style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px;">
+                            <div class="col-md-12">
+                                <div class="d-flex flex-row">
+                                    <h3>Scraping Service</h3>
+                                    <div class="px-1 py-2 align-self-end">
+                                        <p class="mb-0 lead h6" style="font-size: 17px"><i
+                                                id="serviceVersionValue">{{ scraping_service_version }}</i></p>
+                                    </div>
+                                </div>
+                                <div class="position-absolute"
+                                     style="right: 10px; top: 10px; display: flex; flex-direction: column; justify-content: center;">
+                                    <button class="btn" onclick="refreshScrapingServiceStatus()"
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Refresh scraping service status">
+                                        <i id="serviceSyncIcon" class="fas fa-sync-alt fa-sm"></i>
+                                    </button>
+                                </div>
+                                <div style="height: 1px; background-color: dimgray"></div>
+                                <div class="d-flex flex-row mt-2">
+                                    <p>Service is</p>
+                                    <div class="mx-1">
+                                        <div id="serviceRunningStatus"
+                                             class="{% if not scraping_service_running %}d-none{% else %}d-flex{% endif %} flex-row">
+                                            <p style="color: limegreen">running</p>
+                                            <i class="fas fa-check mx-1 mt-1" style="color: limegreen"></i>
+                                        </div>
+                                        <div id="serviceStoppedStatus"
+                                             class="{% if scraping_service_running %}d-none{% else %}d-flex{% endif %} flex-row">
+                                            <p style="color: red">stopped</p>
+                                            <i class="fas fa-times mx-1 mt-1" style="color: red"></i>
+                                        </div>
+                                        <div id="serviceUpdatingStatus" class="d-none flex-row">
+                                            <p style="color: darkgoldenrod">updating...</p>
+                                            <i class="fas fa-solid fa-circle-notch fa-spin mx-1"
+                                               style="color: darkgoldenrod; margin-top: 5px"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 d-flex align-items-center">
+                                <p class="mb-0 mr-2" style="width: 150px">Scraping interval</p>
+                                <select id="intervalDropdown" class="form-control form-select" style="width: 200px"
+                                        onchange="updateScrapingServiceInterval(value)">
+                                    <optgroup label="Once per">
+                                        <option class="dropdown-item" value="1"
+                                                {% if "1" in scraping_service_scrape_interval %}selected{% endif %}>1
+                                            hour
+                                        </option>
+                                        <option class="dropdown-item" value="2"
+                                                {% if "2" in scraping_service_scrape_interval %}selected{% endif %}>2
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="3"
+                                                {% if "3" in scraping_service_scrape_interval %}selected{% endif %}>3
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="4"
+                                                {% if "4" in scraping_service_scrape_interval %}selected{% endif %}>4
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="5"
+                                                {% if "5" in scraping_service_scrape_interval %}selected{% endif %}>5
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="6"
+                                                {% if "6" in scraping_service_scrape_interval %}selected{% endif %}>6
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="12"
+                                                {% if "12" in scraping_service_scrape_interval %}selected{% endif %}>12
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="24"
+                                                {% if "24" in scraping_service_scrape_interval %}selected{% endif %}>24
+                                            hours
+                                        </option>
+                                        <option class="dropdown-item" value="48"
+                                                {% if "48" in scraping_service_scrape_interval %}selected{% endif %}>48
+                                            hours
+                                        </option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="mt-3 mb-3" style="height: 1px; background-color: dimgray"></div>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                        <div class="position-relative text-center p-2">
+                                            <div class="bg-dark d-flex align-items-center justify-content-center"
+                                                 style="height: 60px; width: 100%; border-radius: 15px;">
+                                                <span class="text-white" style="font-size: 14px">nehnutelnosti.sk</span>
+                                            </div>
+                                            <span class="position-absolute top-0 end-0 me-1 status-circle bg-danger rounded-circle"
+                                                  style="width:17px;height:17px;"
+                                                  id="nehnutelnostiskScraperStatus"></span>
+                                            <div class="overlay bg-dark position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                                                <button class="btn btn-outline-light btn-dark me-1 px-3"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Scrape today records"
+                                                        onclick="showToast(ToastLevel.Error, 'Nehnotelnosti scraper', 'Scraper is not running.')">
+                                                    <i class="fas fa-angle-down"></i></button>
+                                                <button class="btn btn-outline-light btn-dark ms-1 px-3"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Scrape all records"
+                                                        onclick="showToast(ToastLevel.Error, 'Nehnotelnosti scraper', 'Scraper is not running.')">
+                                                    <i class="fas fa-angle-double-down"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                        <div class="position-relative text-center p-2">
+                                            <div class="bg-dark d-flex align-items-center justify-content-center"
+                                                 style="height: 60px; width: 100%; border-radius: 15px;">
+                                                <span class="text-white" style="font-size: 14px">reality.sk</span>
+                                            </div>
+                                            <span class="position-absolute top-0 end-0 me-1 status-circle bg-danger rounded-circle"
+                                                  style="width:17px;height:17px;" id="realityskScraperStatus"></span>
+                                            <div class="overlay bg-dark position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                                                <button class="btn btn-outline-light btn-dark me-1 px-3"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Scrape today records"
+                                                        id="realityScraperScrapeTodayRecordsButton"
+                                                        onclick="scrapeTodayRealitySKRecords()"><i
+                                                        class="fas fa-angle-down"></i></button>
+                                                <button class="btn btn-outline-light btn-dark ms-1 px-3"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Scrape all records"
+                                                        id="realityScraperScrapeAllRecordsButton"
+                                                        onclick="scrapeAllRealitySKRecords()"><i
+                                                        class="fas fa-angle-double-down"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-$ col-md-4 col-sm-4 col-xs-12">
+                                        <div class="position-relative text-center p-2">
+                                            <div class="bg-dark d-flex align-items-center justify-content-center"
+                                                 style="height: 60px; width: 100%; border-radius: 15px;">
+                                                <span class="text-white" style="font-size: 14px">topreality.sk</span>
+                                            </div>
+                                            <span class="position-absolute top-0 end-0 me-1 status-circle bg-danger rounded-circle"
+                                                  style="width:17px;height:17px;" id="toprealityskScraperStatus"></span>
+                                            <div class="overlay bg-dark position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                                                <button class="btn btn-outline-light btn-dark me-1 px-3"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Scrape today records"
+                                                        onclick="showToast(ToastLevel.Error, 'TopReality scraper', 'Scraper is not running.')">
+                                                    <i class="fas fa-angle-down"></i></button>
+                                                <button class="btn btn-outline-light btn-dark ms-1 px-3"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Scrape all records"
+                                                        onclick="showToast(ToastLevel.Error, 'TopReality scraper', 'Scraper is not running.')">
+                                                    <i class="fas fa-angle-double-down"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="position-absolute end-0 me-3 d-flex flex-column align-items-end"
+                                     style="margin-top: -65px">
+                                    <div class="mt-1 mb-1 bg-success"
+                                         style="width: 10px; height: 10px; border-radius: 100px"
+                                         data-bs-toggle="tooltip" data-bs-placement="left" title="Ready"></div>
+                                    <div class="mt-1 mb-1 bg-warning"
+                                         style="width: 10px; height: 10px; border-radius: 100px"
+                                         data-bs-toggle="tooltip" data-bs-placement="left"
+                                         title="Scrape in progress"></div>
+                                    <div class="mt-1 mb-1 bg-danger"
+                                         style="width: 10px; height: 10px; border-radius: 100px"
+                                         data-bs-toggle="tooltip" data-bs-placement="left" title="Stopped"></div>
+                                </div>
+                            </div>
+                            <div class="mt-3 mb-3" style="height: 1px; background-color: dimgray"></div>
+                            <div class="row">
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-1">
+                                    <button id="startStopServiceButton" type="button" class="btn btn-dark w-100"
+                                            style="max-height: 50px" onclick="startStopService()">
+                                        {% if not scraping_service_running %}Start{% else %}Stop{% endif %}
+                                    </button>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-1">
+                                    <button type="button" class="btn btn-dark w-100" style="max-height: 50px"
+                                            onclick="restartService()">
+                                        Restart
+                                    </button>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-1">
+                                    <button id="installUninstallServiceButton" type="button" class="btn btn-dark w-100"
+                                            style="max-height: 50px" onclick="installUninstallService()">
+                                        {% if not scraping_service_files_exist %}Install & Start{% else %}
+                                            Uninstall{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4 mt-4" style="border-radius: 20px; border-style: hidden">
+                        <div class="card-body shadow"
+                             style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px; height: 9rem">
+                            <div class="d-flex flex-row" style="right: 15px">
+                                <h3>Location Settings</h3>
+                            </div>
+                            <div class="mb-3" style="height: 1px; background-color: dimgray"></div>
+                            <div class="row" value="{{ scraping_service_location }}">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <select id="locationDropdown" class="form-control form-select-sm mb-3 h-100" onchange="updateScrapingServiceLocation(this)">
+                                        {% for region_name, districts in cities.items %}
+                                            <optgroup label="{{ region_name }}">{{ region_name }}
+                                                {% for district in districts %}
+                                                    <option class="dropdown-item"
+                                                            {% if scraping_service_location == district.realityskurl %}selected{% endif %}
+                                                            nehnutelnostiskurl="{{ district.nehnutelnostiskurl }}"
+                                                            toprealityskurl="{{ district.toprealityskurl }}"
+                                                            realityskurl="{{ district.realityskurl }}"
+                                                            value="{{ district.name }}">{{ district.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4 mt-4" style="border-radius: 20px; border-style: hidden">
+                        <div class="card-body shadow"
+                             style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px; height: 9rem">
+                            <div class="d-flex flex-row" style="right: 15px">
+                                <h3>Prediction Model</h3>
+                            </div>
+                            <div class="mb-3" style="height: 1px; background-color: dimgray"></div>
+                            <div class="row">
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-1">
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-1">
+                                    <button id="installUninstallServiceButton" type="button" class="btn btn-dark w-100" style="max-height: 50px" onclick="trainModel()"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Initiating this action runs a script in the background. Once complete, the best model for the trained data will be saved in the main RealEstateWebScraper folder.">
+                                        Begin training
+                                    </button>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="card mb-4" style="border-radius: 20px; border-style: hidden">
+                            <div class="card-body shadow"
+                                 style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px;">
+                                <h3>Supported sites</h3>
+                                <div class="position-absolute d-flex flex-row"
+                                     style="right: 10px; top: 10px; display: flex; flex-direction: column; justify-content: center;">
+                                    <div class="form-check form-switch" style="margin-top: 7px">
+                                        <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                role="switch"
+                                                id="forceUpdateSupportedWebsites"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="Force update supported websites for scraping (won't use cached status)"
+                                                {% if scraping_service_supported_websites_force_update %}checked{% endif %}
+                                        >
+                                    </div>
+                                    <button class="btn" onclick="refreshSupportedSitesStatus()" data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Refresh supported websites status for scraping">
+                                        <i id="serviceSupportedWebsiteSyncIcon" class="fas fa-sync-alt fa-sm"></i>
+                                    </button>
+                                </div>
+                                <div style="height: 1px; background-color: dimgray"></div>
+                                <div class="container text-center">
+                                    <a target="_blank" href="https://www.nehnutelnosti.sk" id="scrapeSupport">
+                                        <div class="row py-3 my-2" style="--bs-bg-opacity: .10; border-radius: 10px"
+                                             id="nehnutelnostiskScrapeSupport">
+                                            <div class="col-md-12">
+                                                nehnutelnosti.sk
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <a target="_blank" href="https://www.reality.sk" id="scrapeSupport">
+                                        <div class="row py-3 my-2" style="--bs-bg-opacity: .10; border-radius: 10px"
+                                             id="realityskScrapeSupport">
+                                            <div class="col-md-12">
+                                                reality.sk
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <a target="_blank" href="https://www.topreality.sk" id="scrapeSupport">
+                                        <div class="row py-3" style="--bs-bg-opacity: .10; border-radius: 10px"
+                                             id="toprealityskScrapeSupport">
+                                            <div class="col-md-12">
+                                                topreality.sk
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Service not running Modal -->
+    <div class="modal fade" id="serviceNotFoundModal" tabindex="-1" role="dialog"
+         aria-labelledby="serviceNotFoundModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="serviceNotFoundModalLabel">Scraping Service is not Running</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#serviceNotFoundModal').modal('hide')">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>The scraping service is not running. Do you want to start it?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#serviceNotFoundModal').modal('hide')">Close
+                    </button>
+                    <button type="button" class="btn btn-primary" id="startServiceBtn"
+                            onclick="startStopService(); $('#serviceNotFoundModal').modal('hide');">Start Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Popup toast body -->
+    <div class="toast-container position-fixed end-0 bottom-0 mb-5-" aria-live="polite" aria-atomic="true"
+         style="width: 300px; max-height: 200px;">
+    </div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script>
+        let selectedOption = null;
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function scrapeTodayRealitySKRecords() {
+            try {
+                $("#realityScraperScrapeTodayRecordsButton").prop("disabled", true);
+                $("#realityScraperScrapeAllRecordsButton").prop("disabled", true);
+                const csrfToken = getCookie('csrftoken');
+                const response = await fetch('realitysk-scraping-service-scrape-today/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.statusText}`);
+                }
+                showToast(ToastLevel.Success, "Reality scraper", `Today data scraped`);
+                $("#realityScraperScrapeTodayRecordsButton").prop("disabled", false);
+                $("#realityScraperScrapeAllRecordsButton").prop("disabled", false);
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(ToastLevel.Error, "Reality scraper", `Error scraping data`);
+                $("#realityScraperScrapeTodayRecordsButton").prop("disabled", false);
+                $("#realityScraperScrapeAllRecordsButton").prop("disabled", false);
+                throw error;
+            }
+        }
+
+        async function scrapeAllRealitySKRecords() {
+            try {
+                $("#realityScraperScrapeTodayRecordsButton").prop("disabled", true);
+                $("#realityScraperScrapeAllRecordsButton").prop("disabled", true);
+                const csrfToken = getCookie('csrftoken');
+                const response = await fetch('realitysk-scraping-service-scrape-all/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.statusText}`);
+                }
+                showToast(ToastLevel.Success, "Reality scraper", `All data scraped`);
+                $("#realityScraperScrapeTodayRecordsButton").prop("disabled", false);
+                $("#realityScraperScrapeAllRecordsButton").prop("disabled", false);
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(ToastLevel.Error, "Reality scraper", `Error scraping data`);
+                $("#realityScraperScrapeTodayRecordsButton").prop("disabled", false);
+                $("#realityScraperScrapeAllRecordsButton").prop("disabled", false);
+                throw error;
+            }
+        }
+
+        function updateScrapingServiceLocation(selectElement) {
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+
+            var nehnutelnostiskurl = selectedOption.getAttribute('nehnutelnostiskurl');
+            var toprealityskurl = selectedOption.getAttribute('toprealityskurl');
+            var realityskurl = selectedOption.getAttribute('realityskurl');
+
+            updateScrapingServiceLocationPOST(nehnutelnostiskurl, toprealityskurl, realityskurl);
+        }
+
+        /**
+         * @param {string} nehnutelnostiskLocation
+         * @param {string} toprealityskLocation
+         * @param {string} realityskLocation
+         */
+        async function updateScrapingServiceLocationPOST(nehnutelnostiskLocation, toprealityskLocation, realityskLocation) {
+            try {
+                await refreshScrapingServiceStatus();
+                $("#locationDropdown").prop("disabled", true);
+                const csrfToken = getCookie('csrftoken');
+                const response = await fetch('scraping-service-location/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({"realitysk_location": realityskLocation}),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.statusText}`);
+                }
+                $("#locationDropdown").prop("disabled", false);
+                showToast(ToastLevel.Success, "Scraping service", `Scraping location updated`);
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(ToastLevel.Error, "Scraping service", `Scraping location could not be updated. See logs.`);
+                $("#locationDropdown").prop("disabled", false);
+                throw error;
+            }
+        }
+
+        async function installUninstallService() {
+            try {
+                if (await doScrapingServiceFilesExist()) {
+                    await executeScrapingServiceAction("uninstall");
+                    await refreshScrapingServiceStatus()
+                    updateInstallUninstallServiceButton(await doScrapingServiceFilesExist())
+                    showToast(ToastLevel.Success, "Scraping service", "Service uninstalled")
+                    updateStartStopServiceButton(false)
+                    updateScrapingServiceVersionElement('VERSION ERROR')
+                } else {
+                    await executeScrapingServiceAction("install");
+                    await refreshScrapingServiceStatus();
+                    updateInstallUninstallServiceButton(await doScrapingServiceFilesExist())
+                    showToast(ToastLevel.Success, "Scraping service", "Service installed")
+                    updateStartStopServiceButton(true)
+                    updateScrapingServiceVersionElement(await scrapingServiceVersion())
+                }
+            } catch (error) {
+                showToast(ToastLevel.Error, "Scraping service", "Service couldn't be (un)installed")
+                console.log('Install/Uninstall scraping service error: ' + error)
+            }
+        }
+
+        async function startStopService() {
+            try {
+                if (await isScrapingServiceRunning()) {
+                    await executeScrapingServiceAction("stop");
+                    let scrapingServiceRunning = await isScrapingServiceRunning();
+                    if (scrapingServiceRunning) {
+                        showToast(ToastLevel.Error, "Scraping service", "Service couldn't be stopped")
+                    } else {
+                        updateStartStopServiceButton(scrapingServiceRunning)
+                        showToast(ToastLevel.Success, "Scraping service", "Service stopped")
+                    }
+                } else {
+                    await executeScrapingServiceAction("start");
+                    let scrapingServiceRunning = await isScrapingServiceRunning();
+                    if (scrapingServiceRunning) {
+                        updateStartStopServiceButton(scrapingServiceRunning)
+                        showToast(ToastLevel.Success, "Scraping service", "Service started")
+                    } else {
+                        showToast(ToastLevel.Error, "Scraping service", "Service couldn't be started")
+                    }
+                }
+            } catch (error) {
+                showToast(ToastLevel.Error, "Scraping service", "Service couldn't be started/stopped")
+                console.log('Starting/Stopping scraping service error: ' + error)
+            }
+        }
+
+        function updateStartStopServiceButton(scrapingServiceRunning) {
+            if (scrapingServiceRunning) {
+                $('#startStopServiceButton').text("Stop")
+            } else {
+                $('#startStopServiceButton').text("Start")
+            }
+        }
+
+        function updateInstallUninstallServiceButton(scrapingServiceFilesExist) {
+            if (scrapingServiceFilesExist) {
+                $('#installUninstallServiceButton').text("Uninstall")
+            } else {
+                $('#installUninstallServiceButton').text("Install & Start")
+            }
+        }
+
+        async function restartService() {
+            try {
+                if (await isScrapingServiceRunning()) {
+                    await executeScrapingServiceAction("restart");
+                    showToast(ToastLevel.Success, "Scraping service", "Service restarted")
+                } else {
+                    showToast(ToastLevel.Error, "Scraping service", "Service couldn't be restarted")
+                }
+            } catch (error) {
+                showToast(ToastLevel.Error, "Scraping service", "Service couldn't be restarted")
+                console.log('Restarting scraping service error: ' + error)
+            }
+        }
+
+        async function trainModel(){
+            try{
+                const result = await executeScrapingServiceAction("train");
+                if(result.includes("error")){
+                    showToast(ToastLevel.Error, 'Model Training', "Model couldn't be trained")
+                } else {
+                    showToast(ToastLevel.Error, 'Model Training', "Model trained")
+                }
+            } catch (error){
+                showToast(ToastLevel.Error, 'Model Training', "Model couldn't be trained")
+            }
+        }
+
+        async function refreshScrapingServiceStatus() {
+            // Start updating
+            switchSpinClass("#serviceSyncIcon");
+            scrapingServiceStatusElementUpdating(true);
+            await delay(1000);
+
+            // Running status
+            try {
+                const status = await isScrapingServiceRunning();
+                updateScrapingServiceVersionElement(await scrapingServiceVersion())
+                updateScrapingServiceStatusElement(status);
+                updateStartStopServiceButton(status)
+                updateInstallUninstallServiceButton(await doScrapingServiceFilesExist())
+                switchSpinClass("#serviceSyncIcon");
+                //showToast(ToastLevel.Info, "Scraping service", "Service status was updated")
+            } catch (error) {
+                switchSpinClass("#serviceSyncIcon");
+                //showToast(ToastLevel.Error, "Scraping service", "Service status couldn't be updated")
+            }
+        }
+
+        async function scrapingServiceVersion() {
+            try {
+                var serviceStatus = await scrapingServiceStatus();
+                return serviceStatus["scraping_service_version"];
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        }
+
+
+        async function isScrapingServiceRunning() {
+            try {
+                var serviceStatus = await scrapingServiceStatus();
+                return serviceStatus["scraping_service_running"];
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        }
+
+        async function doScrapingServiceFilesExist() {
+            try {
+                var serviceStatus = await scrapingServiceStatus();
+                return serviceStatus["scraping_service_files_exists"];
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        }
+
+        async function scrapingServiceStatus() {
+            try {
+                const response = await fetch('scraping-service-status/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        }
+
+        async function executeScrapingServiceAction(action) {
+            const serviceRunningAllowedActions = ['stop', 'restart'];
+            const serviceNotRunningAllowedActions = ['install', 'start'];
+            const scrapingServiceRunning = await isScrapingServiceRunning();
+            if (scrapingServiceRunning && action === "uninstall") {
+                await executeScrapingServiceActionPOST("stop");
+                await executeScrapingServiceActionPOST("uninstall")
+            } else if (scrapingServiceRunning && serviceNotRunningAllowedActions.includes(action)) {
+                showToast(ToastLevel.Warning, "Scraping service", `Action (${action}) cannot be performed while the service is running!`);
+                return;
+            } else if (!scrapingServiceRunning && serviceRunningAllowedActions.includes(action)) {
+                $('#serviceNotFoundModal').modal('show')
+                return;
+            } else {
+                await executeScrapingServiceActionPOST(action)
+            }
+            await refreshScrapingServiceStatus()
+        }
+
+        async function executeScrapingServiceActionPOST(action) {
+            try {
+                const response = await fetch('execute-scraping-service-action/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({action: action}),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Scraping service action response:', data);
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        function scrapingServiceStatusElementUpdating(updating) {
+            const serviceRunningStatusDivClassList = $('#serviceRunningStatus').prop("classList")
+            const serviceStoppedStatusDivClassList = $('#serviceStoppedStatus').prop("classList")
+            const serviceUpdatingStatusDivClassList = $('#serviceUpdatingStatus').prop("classList")
+
+            // Hide existing status elements
+            serviceRunningStatusDivClassList.remove("d-flex")
+            serviceStoppedStatusDivClassList.remove("d-flex")
+            serviceRunningStatusDivClassList.add("d-none")
+            serviceStoppedStatusDivClassList.add("d-none")
+
+            if (updating) {
+                // Updating
+                serviceUpdatingStatusDivClassList.remove("d-none")
+                serviceUpdatingStatusDivClassList.add("d-flex")
+            } else {
+                // Finish updating
+                serviceUpdatingStatusDivClassList.add("d-none")
+                serviceUpdatingStatusDivClassList.remove("d-flex")
+            }
+        }
+
+        function updateScrapingServiceVersionElement(version) {
+            const serviceVersionElement = $('#serviceVersionValue')
+            serviceVersionElement.text(version)
+        }
+
+        function updateScrapingServiceStatusElement(running) {
+            // Stop updating element
+            scrapingServiceStatusElementUpdating(false)
+            const serviceRunningStatusElementClassList = $('#serviceRunningStatus').prop("classList")
+            const serviceStoppedStatusElementClassList = $('#serviceStoppedStatus').prop("classList")
+
+            if (running) {
+                // Running
+                console.log("Scraping service is running...")
+                serviceRunningStatusElementClassList.remove("d-none")
+                serviceRunningStatusElementClassList.add("d-flex")
+                serviceStoppedStatusElementClassList.remove("d-flex")
+                serviceStoppedStatusElementClassList.add("d-none")
+            } else {
+                // Stopped
+                console.log("Scraping service is not running...")
+                serviceRunningStatusElementClassList.remove("d-flex")
+                serviceRunningStatusElementClassList.add("d-none")
+                serviceStoppedStatusElementClassList.remove("d-none")
+                serviceStoppedStatusElementClassList.add("d-flex")
+            }
+        }
+
+        async function refreshSupportedSitesStatus() {
+            try {
+                switchSpinClass("#serviceSupportedWebsiteSyncIcon");
+                scrapingServiceStatusElementUpdating(true);
+                const csrfToken = getCookie('csrftoken');
+                const response = await fetch('scraping-service-website-support/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({force_update: $("#forceUpdateSupportedWebsites").is(':checked')}),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data['nehnutelnostisk_support']) {
+                    document.getElementById('nehnutelnostiskScrapeSupport').classList.remove('bg-danger');
+                    document.getElementById('nehnutelnostiskScrapeSupport').classList.add('bg-success');
+                } else {
+                    document.getElementById('nehnutelnostiskScrapeSupport').classList.remove('bg-success');
+                    document.getElementById('nehnutelnostiskScrapeSupport').classList.add('bg-danger');
+                }
+                if (data['realitysk_support']) {
+                    document.getElementById('realityskScrapeSupport').classList.remove('bg-danger');
+                    document.getElementById('realityskScrapeSupport').classList.add('bg-success');
+                } else {
+                    document.getElementById('realityskScrapeSupport').classList.remove('bg-success');
+                    document.getElementById('realityskScrapeSupport').classList.add('bg-danger');
+                }
+                if (data['topreality_support']) {
+                    document.getElementById('toprealityskScrapeSupport').classList.remove('bg-danger');
+                    document.getElementById('toprealityskScrapeSupport').classList.add('bg-success');
+                } else {
+                    document.getElementById('toprealityskScrapeSupport').classList.remove('bg-success');
+                    document.getElementById('toprealityskScrapeSupport').classList.add('bg-danger');
+                }
+                switchSpinClass("#serviceSupportedWebsiteSyncIcon");
+                updateScrapingServiceStatusElement(true);
+            } catch (error) {
+                switchSpinClass("#serviceSupportedWebsiteSyncIcon");
+                updateScrapingServiceStatusElement(true);
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        refreshScraperStatus()
+        setInterval(refreshScraperStatus, 15000);
+
+        async function refreshScraperStatus() {
+            try {
+                const csrfToken = getCookie('csrftoken');
+                const response = await fetch('scraping-service-scrape-status/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data['nehnutelnostisk_scrape_status'] === 'SCRAPE STATUS ERROR') {
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.remove('bg-success');
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.add('bg-danger');
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.remove('bg-warning');
+                } else if (data['nehnutelnostisk_scrape_status'] === true) {
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.remove('bg-success');
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.remove('bg-danger');
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.add('bg-warning');
+                } else {
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.add('bg-success');
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.remove('bg-danger');
+                    document.getElementById('nehnutelnostiskScraperStatus').classList.remove('bg-warning');
+                }
+                if (data['realitysk_scrape_status'] === 'SCRAPE STATUS ERROR') {
+                    document.getElementById('realityskScraperStatus').classList.remove('bg-success');
+                    document.getElementById('realityskScraperStatus').classList.add('bg-danger');
+                    document.getElementById('realityskScraperStatus').classList.remove('bg-warning');
+                } else if (data['realitysk_scrape_status'] === true) {
+                    $("#realityScraperScrapeTodayRecordsButton").prop("disabled", true);
+                    $("#realityScraperScrapeAllRecordsButton").prop("disabled", true);
+                    document.getElementById('realityskScraperStatus').classList.remove('bg-success');
+                    document.getElementById('realityskScraperStatus').classList.remove('bg-danger');
+                    document.getElementById('realityskScraperStatus').classList.add('bg-warning');
+                } else {
+                    $("#realityScraperScrapeTodayRecordsButton").prop("disabled", false);
+                    $("#realityScraperScrapeAllRecordsButton").prop("disabled", false);
+                    document.getElementById('realityskScraperStatus').classList.add('bg-success');
+                    document.getElementById('realityskScraperStatus').classList.remove('bg-danger');
+                    document.getElementById('realityskScraperStatus').classList.remove('bg-warning');
+                }
+                if (data['toprealitysk_scrape_status'] === 'SCRAPE STATUS ERROR') {
+                    document.getElementById('toprealityskScraperStatus').classList.remove('bg-success');
+                    document.getElementById('toprealityskScraperStatus').classList.add('bg-danger');
+                    document.getElementById('toprealityskScraperStatus').classList.remove('bg-warning');
+                } else if (data['toprealitysk_scrape_status'] === true) {
+                    document.getElementById('toprealityskScraperStatus').classList.remove('bg-success');
+                    document.getElementById('toprealityskScraperStatus').classList.remove('bg-danger');
+                    document.getElementById('toprealityskScraperStatus').classList.add('bg-warning');
+                } else {
+                    document.getElementById('toprealityskScraperStatus').classList.add('bg-success');
+                    document.getElementById('toprealityskScraperStatus').classList.remove('bg-danger');
+                    document.getElementById('toprealityskScraperStatus').classList.remove('bg-warning');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * @param {string} scrapingIntervalValue
+         */
+        async function updateScrapingServiceInterval(scrapingIntervalValue) {
+            try {
+                await refreshScrapingServiceStatus();
+                $("#intervalDropdown").prop("disabled", true);
+                const csrfToken = getCookie('csrftoken');
+                const response = await fetch('scraping-service-interval/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({"scraping_interval_hours": scrapingIntervalValue}),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                $("#intervalDropdown").prop("disabled", false);
+                showToast(ToastLevel.Success, "Scraping service", `Scraping interval updated`);
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(ToastLevel.Error, "Scraping service", `Scraping interval could not be updated. See logs.`);
+                $("#intervalDropdown").prop("disabled", false);
+                $("#intervalDropdown").val(12)
+                throw error;
+            }
+        }
+
+        function switchSpinClass(elementSelector) {
+            const element = $(elementSelector);
+            const classList = element.prop("classList");
+            if (classList.contains('fa-spin')) {
+                classList.remove('fa-spin');
+            } else {
+                classList.add('fa-spin');
+            }
+        }
+
+        /**
+         * @param {ToastLevel} toastLevel
+         * @param {string} title
+         * @param {string} body
+         */
+        function showToast(toastLevel, title, body) {
+            var messageColored = `<i style="color: ${toastLevel}">${body}</i>`;
+            var newToast = $('<div class="toast end-0 bottom-0 mx-3" style="width: 250px; margin-bottom: 10px;" role="alert" aria-live="assertive" aria-atomic="true">' +
+                '<div class="toast-header">' +
+                '<strong class="mr-auto">' + title + '</strong>' +
+                '</div>' +
+                '<div class="toast-body">' +
+                messageColored +
+                '</div>' +
+                '</div>');
+
+            $('.toast-container').prepend(newToast);
+            let toast = new bootstrap.Toast(newToast[0]);
+            toast.show();
+
+            // Remove toast after it was displayed
+            setTimeout(function () {
+                newToast.remove();
+            }, 7000);
+        }
+    </script>
+{% endblock javascripts %}

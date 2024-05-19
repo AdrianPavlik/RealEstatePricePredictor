@@ -1,0 +1,574 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Price Predictor - Data Analysis {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <style>
+        .custom-container {
+            max-width: 50%;
+        }
+
+        @media (max-width: 1700px) {
+            .custom-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+    <main>
+        <div class="container-fluid mt-4 custom-container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <canvas id="propertyTypeFrequency"></canvas>
+                </div>
+                <div class="col-lg-6">
+                    <canvas id="amenitiesCountDistribution"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <canvas id="offerTypeDistribution"></canvas>
+                </div>
+                <div class="col-lg-6">
+                    <canvas id="geographicalHeatMapOfPrices"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <canvas id="cityWisePropertyCount"></canvas>
+                </div>
+                <div class="col-lg-6">
+                    <canvas id="propertyAgeDistribution"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <canvas id="cityWisePropertyCount"></canvas>
+                </div>
+                <div class="col-lg-6">
+                    <canvas id="propertyAgePerCityDistribution"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script>
+        async function initializeCharts() {
+            const data = await fetchStoredData();
+            if (data) {
+                createPropertyTypeFrequencyChart(data['data'])
+                createAmenitiesCountDistributionChart(data['data'])
+                createOfferTypeDistributionChart(data['data'])
+                createCityWisePropertyCountChart(data['data'])
+                createPropertyAgeDistributionChart(data['data']);
+                createGeographicalHeatMapOfPrices(data['data'])
+            }
+        }
+
+        function createPropertyTypeFrequencyChart(properties) {
+            const typeCounts = {};
+            properties.forEach(property => {
+                const type = property.type || 'Unknown';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            // Create the chart
+            const ctx = document.getElementById('propertyTypeFrequency').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(typeCounts),
+                    datasets: [{
+                        label: 'Property Type Frequency',
+                        data: Object.values(typeCounts),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#F7464A',
+                            '#46BFBD', '#FDB45C', '#949FB1', '#4D5360'
+                        ],
+                        hoverBackgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#F7464A',
+                            '#46BFBD', '#FDB45C', '#949FB1', '#4D5360'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        display: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: 'Property type frequency'
+                    }
+                }
+            });
+        }
+
+        function createAmenitiesCountDistributionChart(properties) {
+            const amenitiesCount = {
+                Lift: 0,
+                Pool: 0,
+                Gazebo: 0,
+                Terrace: 0,
+                Sauna: 0,
+                Garage: 0,
+                Parking_space: 0,
+                Basement: 0,
+                Air_conditioning: 0,
+                Balcony: 0,
+                Loggia: 0,
+                Garden: 0,
+                Fireplace: 0,
+                Bathroom: 0,
+                New_building: 0
+            };
+
+            properties.forEach(property => {
+                if (property.lift) amenitiesCount.Lift++;
+                if (property.pool) amenitiesCount.Pool++;
+                if (property.gazebo) amenitiesCount.Gazebo++;
+                if (property.terrace) amenitiesCount.Terrace++;
+                if (property.sauna) amenitiesCount.Sauna++;
+                if (property.garage) amenitiesCount.Garage++;
+                if (property.parking_space) amenitiesCount.Parking_space++;
+                if (property.basement) amenitiesCount.Basement++;
+                if (property.air_conditioning) amenitiesCount.Air_conditioning++;
+                if (property.balcony) amenitiesCount.Balcony++;
+                if (property.loggia) amenitiesCount.Loggia++;
+                if (property.garden) amenitiesCount.Garden++;
+                if (property.fireplace) amenitiesCount.Fireplace++;
+                if (property.bathroom) amenitiesCount.Bathroom++;
+                if (property.new_building) amenitiesCount.New_building++;
+            });
+
+            const ctx = document.getElementById('amenitiesCountDistribution').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(amenitiesCount),
+                    datasets: [{
+                        label: 'Count of Amenities',
+                        data: Object.values(amenitiesCount),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(199, 199, 199, 0.2)',
+                            'rgba(233, 30, 99, 0.2)',
+                            'rgba(33, 150, 243, 0.2)',
+                            'rgba(76, 175, 80, 0.2)',
+                            'rgba(255, 87, 34, 0.2)',
+                            'rgba(96, 125, 139, 0.2)',
+                            'rgba(205, 220, 57, 0.2)',
+                            'rgba(158, 158, 158, 0.2)',
+                            'rgba(103, 58, 183, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(199, 199, 199, 1)',
+                            'rgba(233, 30, 99, 1)',
+                            'rgba(33, 150, 243, 1)',
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(255, 87, 34, 1)',
+                            'rgba(96, 125, 139, 1)',
+                            'rgba(205, 220, 57, 1)',
+                            'rgba(158, 158, 158, 1)',
+                            'rgba(103, 58, 183, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Amenities Count Distribution'
+                    }
+                }
+            });
+        }
+
+        function createOfferTypeDistributionChart(properties) {
+            const offerTypeCounts = {};
+            properties.forEach(property => {
+                const offerType = property.offer_type || 'Unknown';
+                offerTypeCounts[offerType] = (offerTypeCounts[offerType] || 0) + 1;
+            });
+
+            // Setup the chart
+            const ctx = document.getElementById('offerTypeDistribution').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(offerTypeCounts),
+                    datasets: [{
+                        label: 'Offer Type Distribution',
+                        data: Object.values(offerTypeCounts),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56'
+                        ],
+                        hoverBackgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        display: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        datalabels: {
+                            display: true,
+                            formatter: (value, ctx) => {
+                                return `${(value * 100 / properties.length).toFixed(2)}%`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Offer type distribution'
+                    }
+                }
+            });
+        }
+
+        function createCityWisePropertyCountChart(properties) {
+            const cityCounts = properties.reduce((acc, item) => {
+                if (item.city) {
+                    acc[item.city] = (acc[item.city] || 0) + 1;
+                }
+                return acc;
+            }, {});
+
+            const cityNames = Object.keys(cityCounts);
+            const propertyCounts = Object.values(cityCounts);
+
+            const ctx = document.getElementById('cityWisePropertyCount').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: cityNames,
+                    datasets: [{
+                        label: 'Number of Properties',
+                        data: propertyCounts,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Properties'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'City wise property count'
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createPropertyAgeDistributionChart(properties) {
+            const currentYear = new Date().getFullYear();
+            const ageDistribution = {
+                '0-10 years': 0,
+                '11-20 years': 0,
+                '21-30 years': 0,
+                '31-40 years': 0,
+                '41-50 years': 0,
+                'Over 50 years': 0
+            };
+
+            properties.forEach(property => {
+                if (property.year_of_construction) {
+                    const age = currentYear - property.year_of_construction;
+                    if (age <= 10) {
+                        ageDistribution['0-10 years']++;
+                    } else if (age <= 20) {
+                        ageDistribution['11-20 years']++;
+                    } else if (age <= 30) {
+                        ageDistribution['21-30 years']++;
+                    } else if (age <= 40) {
+                        ageDistribution['31-40 years']++;
+                    } else if (age <= 50) {
+                        ageDistribution['41-50 years']++;
+                    } else {
+                        ageDistribution['Over 50 years']++;
+                    }
+                }
+            });
+
+            const ctx = document.getElementById('propertyAgeDistribution').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ageDistribution),
+                    datasets: [{
+                        label: 'Property Age Distribution',
+                        data: Object.values(ageDistribution),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Property age distribution'
+                    }
+                }
+            });
+        }
+
+        function createCityWisePropertyAgeDistributionChart(properties) {
+            const currentYear = new Date().getFullYear();
+            const cityAgeDistribution = {};
+
+            properties.forEach(property => {
+                if (property.city && property.year_of_construction) {
+                    if (!cityAgeDistribution[property.city]) {
+                        cityAgeDistribution[property.city] = {
+                            '0-10 years': 0,
+                            '11-20 years': 0,
+                            '21-30 years': 0,
+                            '31-40 years': 0,
+                            '41-50 years': 0,
+                            'Over 50 years': 0
+                        };
+                    }
+                    const age = currentYear - property.year_of_construction;
+                    if (age <= 10) {
+                        cityAgeDistribution[property.city]['0-10 years']++;
+                    } else if (age <= 20) {
+                        cityAgeDistribution[property.city]['11-20 years']++;
+                    } else if (age <= 30) {
+                        cityAgeDistribution[property.city]['21-30 years']++;
+                    } else if (age <= 40) {
+                        cityAgeDistribution[property.city]['31-40 years']++;
+                    } else if (age <= 50) {
+                        cityAgeDistribution[property.city]['41-50 years']++;
+                    } else {
+                        cityAgeDistribution[property.city]['Over 50 years']++;
+                    }
+                }
+            });
+
+            Object.keys(cityAgeDistribution).forEach(city => {
+                const canvasId = `propertyAgeDistribution-${city.replace(/\s+/g, '-')}`;
+                const canvasHtml = `<canvas id="${canvasId}"></canvas>`;
+                document.body.innerHTML += canvasHtml;
+
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(cityAgeDistribution[city]),
+                        datasets: [{
+                            label: `Property Age Distribution for ${city}`,
+                            data: Object.values(cityAgeDistribution[city]),
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Properties'
+                                }
+                            }
+                        },
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: `Property Age Distribution in ${city}`
+                        }
+                    }
+                });
+            });
+        }
+
+        function createGeographicalHeatMapOfPrices(properties) {
+            const dataPoints = properties.map(property => ({
+                x: property.longitude,
+                y: property.latitude,
+                value: property.price
+            }));
+
+            const dataset = {
+                data: dataPoints,
+                backgroundColor: dataPoints.map(point => getColorForPrice(point.value)),
+                borderColor: '#fff',
+                borderWidth: 1,
+                radius: dataPoints.map(point => getRadiusForPrice(point.value))
+            };
+
+            const ctx = document.getElementById('geographicalHeatMapOfPrices').getContext('2d');
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [dataset]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom'
+                        },
+                        y: {
+                            type: 'linear'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                                if (label) {
+                                    label += ': ';
+                                }
+
+                                const value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].value;
+                                label += `€${value}`;
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Heat map of prices (bigger dot means higher price)'
+                    }
+                }
+            });
+        }
+
+        async function fetchStoredData() {
+            try {
+                const response = await fetch('get-stored-data/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                let test = await response.json();
+                console.log(test)
+                return test
+            } catch (error) {
+                console.error('There has been a problem with your fetch operation:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeCharts);
+    </script>
+{% endblock javascripts %}

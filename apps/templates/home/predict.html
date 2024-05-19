@@ -1,0 +1,306 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Price Predictor - Predict {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    <main>
+        <div class="container shadow mt-5 p-4"
+             style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px;">
+            <div class="row d-flex flex-row">
+                <div class="col-md-4">
+                    <h2 class="text-center">Describe details</h2>
+                    <table class="table">
+                        <tr>
+                            <th><i class="fas fa-expand-arrows-alt" title="Land Area"></i> Land Area in m²</th>
+                            <td><input type="number" class="form-control" name="land_area"></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-calendar-alt" title="Year of Construction"></i> Year of Construction
+                            </th>
+                            <td><input type="number" class="form-control" name="year_of_construction"></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-door-closed" title="Rooms"></i> Number of rooms</th>
+                            <td><input type="number" class="form-control" name="rooms"></td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div class="d-flex flex-row">
+                                    <i class="fas fa-city mt-1"></i>
+                                    <label for="geographicSelect" class="form-label mt-auto ms-1" style="min-width: 110px">City</label>
+                                </div>
+                            </th>
+                            <td>
+                                <select id="geographicSelect" class="form-select">
+                                    <option selected>Choose...</option>
+                                    {% for city, coords in database_stats.city_locations.items %}
+                                        <option value="{{ city }}" data-latitude="{{ coords.latitude }}"
+                                                data-longitude="{{ coords.longitude }}">{{ city }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div class="d-flex flex-row">
+                                    <i class="fas fa-map-pin mt-1" title="Latitude"></i>
+                                    <p class="ms-1">Latitude</p>
+                                    <div
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top"
+                                       title="[Minimum - 47.739167] [Maximum - 49.613333] You can calculate latitude, for example, at www.latlong.net.">
+                                    <i class="fas fa-info-circle ms-1 mt-1" style="width: 15px; height: 15px; border-radius: 100px"></i>
+                                    </div>
+                                </div>
+                            </th>
+                            <td><input type="number" class="form-control" name="latitude" min="47.739167"
+                                       max="49.613333" step="0.01" id="latitude"></td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div class="d-flex flex-row">
+                                    <i class="fas fa-map-pin mt-1" title="Longitude"></i>
+                                    <p class="ms-1">Longitude</p>
+                                    <div data-bs-toggle="tooltip"
+                                       data-bs-placement="top"
+                                       title="[Minimum - 16.848889] [Maximum - 22.564722] You can calculate longitude, for example, at www.latlong.net.">
+                                    <i class="fas fa-info-circle ms-1 mt-1" style="width: 15px; height: 15px; border-radius: 100px"></i>
+                                    </div>
+                                </div>
+                            </th>
+                            <td><input type="number" class="form-control" name="longitude" min="16.848889" max="22.564722" step="0.01" id="longitude"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <h2 class="text-center">Select features</h2>
+                    <table class="table">
+                        <tr>
+                            <th><i class="fas fa-arrow-up" title="Lift"></i> Lift</th>
+                            <td onclick="toggleBoolean('liftToggle')" style="cursor: pointer;"><i id="liftToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-car" title="Parking Space"></i> Parking Space</th>
+                            <td onclick="toggleBoolean('parkingSpaceToggle')" style="cursor: pointer;"><i
+                                    id="parkingSpaceToggle" class="fas fa-toggle-on"></i></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-warehouse" title="Basement"></i> Basement</th>
+                            <td onclick="toggleBoolean('basementToggle')" style="cursor: pointer;"><i
+                                    id="basementToggle" class="fas fa-toggle-on"></i></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-umbrella-beach" title="Gazebo"></i> Gazebo</th>
+                            <td onclick="toggleBoolean('gazeboToggle')" style="cursor: pointer;"><i id="gazeboToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-square-full" title="Terrace"></i> Terrace</th>
+                            <td onclick="toggleBoolean('terraceToggle')" style="cursor: pointer;"><i id="terraceToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-swimmer" title="Pool"></i> Pool</th>
+                            <td onclick="toggleBoolean('poolToggle')" style="cursor: pointer;"><i id="poolToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-snowflake" title="Air Conditioning"></i> Air Conditioning</th>
+                            <td onclick="toggleBoolean('airConditioningToggle')" style="cursor: pointer;"><i
+                                    id="airConditioningToggle" class="fas fa-toggle-on"></i></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-hot-tub" title="Sauna"></i> Sauna</th>
+                            <td onclick="toggleBoolean('saunaToggle')" style="cursor: pointer;"><i id="saunaToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-columns" title="Balcony"></i> Balcony</th>
+                            <td onclick="toggleBoolean('balconyToggle')" style="cursor: pointer;"><i id="balconyToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-warehouse" title="Garage"></i> Garage</th>
+                            <td onclick="toggleBoolean('garageToggle')" style="cursor: pointer;"><i id="garageToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-image" title="Loggia"></i> Loggia</th>
+                            <td onclick="toggleBoolean('loggiaToggle')" style="cursor: pointer;"><i id="loggiaToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-tree" title="Garden"></i> Garden</th>
+                            <td onclick="toggleBoolean('gardenToggle')" style="cursor: pointer;"><i id="gardenToggle" class="fas fa-toggle-on"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-fire" title="Fireplace"></i> Fireplace</th>
+                            <td onclick="toggleBoolean('fireplaceToggle')" style="cursor: pointer;"><i
+                                    id="fireplaceToggle" class="fas fa-toggle-on"></i></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-bath" title="Bathroom"></i> Bathroom</th>
+                            <td onclick="toggleBoolean('bathroomToggle')" style="cursor: pointer;"><i
+                                    id="bathroomToggle" class="fas fa-toggle-on"></i></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-ruler-combined" title="New Building"></i> New Building</th>
+                            <td onclick="toggleBoolean('newBuildingToggle')" style="cursor: pointer;"><i
+                                    id="newBuildingToggle" class="fas fa-toggle-on"></i></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h2 class="text-center">Predict</h2>
+                    <div class="d-flex flex-row justify-content-center mt-5">
+                        <div class="mx-3">Predaj</div>
+                        <div onclick="toggleBoolean('sellRentToggle')" style="cursor: pointer;"><i id="sellRentToggle" class="fas fa-toggle-on"></i></div>
+                        <div class="mx-3">Prenájom</div>
+                    </div>
+                    <button id="randomizeButton" class="btn btn-secondary mt-5" onclick="randomizeInputs()"><i
+                            class="fas fa-dice-five"></i></button>
+                    <button id="predictButton" class="btn btn-primary mt-5" onclick="predictPrice()">Predict Price
+                    </button>
+                    <div id="predictionResult" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Popup toast body -->
+    <div class="toast-container position-fixed end-0 bottom-0 mb-5-" aria-live="polite" aria-atomic="true"
+         style="width: 300px; max-height: 200px;">
+    </div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const geographicSelect = document.getElementById('geographicSelect');
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const randomizeButton = document.getElementById('randomizeButton');
+
+            function disableInputs(inputElements, disable) {
+                inputElements.forEach(input => {
+                    input.disabled = disable;
+                    if (disable) {
+                        input.value = '';
+                    }
+                });
+            }
+
+            geographicSelect.addEventListener('change', function() {
+                if (this.value !== 'Choose...') {
+                    disableInputs([latitudeInput, longitudeInput], true);
+                    $('input[name="latitude"]').val(geographicSelect.getAttribute('data-latitude'));
+                    $('input[name="longitude"]').val(geographicSelect.getAttribute('data-longitude'));
+                } else {
+                    disableInputs([latitudeInput, longitudeInput], false);
+                }
+            });
+
+            function handleLatLongInput() {
+                if (latitudeInput.value !== '' || longitudeInput.value !== '') {
+                    disableInputs([geographicSelect], true);
+                    geographicSelect.value = 'Choose...';
+                    geographicSelect.dispatchEvent(new Event('change'));
+                } else {
+                    disableInputs([geographicSelect], false);
+                }
+            }
+
+            latitudeInput.addEventListener('input', handleLatLongInput);
+            longitudeInput.addEventListener('input', handleLatLongInput);
+            geographicSelect.dispatchEvent(new Event('change'));
+        });
+
+        function selectDefaultCity() {
+            const geographicSelect = document.getElementById('geographicSelect');
+            const kosiceOption = Array.from(geographicSelect.options).find(option => option.value === "Košice");
+            if (kosiceOption) {
+                geographicSelect.value = kosiceOption.value;
+                geographicSelect.dispatchEvent(new Event('change'));
+            } else {
+                console.error("Kosice option not found in the dropdown.");
+            }
+        }
+
+        async function predictPrice() {
+            if ($('#predictionResult').hasClass('d-none')) {
+                $('#predictionResult').addClass('d-none');
+            }
+
+            const geographicSelect = document.getElementById('geographicSelect');
+            if (geographicSelect.value === "Choose..."){
+                selectDefaultCity()
+            }
+
+            const selectedCityOption = geographicSelect.options[geographicSelect.selectedIndex];
+            const latitude = parseFloat(selectedCityOption.getAttribute('data-latitude')) || parseFloat($('#latitude').val());
+            const longitude = parseFloat(selectedCityOption.getAttribute('data-longitude')) || parseFloat($('#longitude').val());
+
+            // Ensure numeric fields have default values
+            $('input[name="land_area"]').val(function () {
+                return this.value === '' ? 20.0 : this.value;
+            });
+            $('input[name="year_of_construction"]').val(function () {
+                return this.value === '' ? new Date().getFullYear() : this.value;
+            });
+            $('input[name="rooms"]').val(function () {
+                return this.value === '' ? 1 : this.value;
+            });
+
+            const landArea = parseFloat($('input[name="land_area"]').val());
+            const yearOfConstruction = parseInt($('input[name="year_of_construction"]').val());
+            const numberOfRooms = parseInt($('input[name="rooms"]').val());
+
+            const features = {
+                offer_type: [$('#sellRentToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                land_area: [landArea],
+                year_of_construction: [yearOfConstruction],
+                number_of_rooms: [numberOfRooms],
+                lift: [$('#liftToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                parking_space: [$('#parkingSpaceToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                basement: [$('#basementToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                gazebo: [$('#gazeboToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                terrace: [$('#terraceToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                pool: [$('#poolToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                air_conditioning: [$('#airConditioningToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                sauna: [$('#saunaToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                balcony: [$('#balconyToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                garage: [$('#garageToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                loggia: [$('#loggiaToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                garden: [$('#gardenToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                fireplace: [$('#fireplaceToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                bathroom: [$('#bathroomToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                new_building: [$('#newBuildingToggle').hasClass('fa-toggle-on') ? 1 : 0],
+                latitude: [latitude],
+                longitude: [longitude]
+            };
+
+            const response = await fetch(`predict-price/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify(features),
+            });
+
+            if (!response.ok) {
+                $('#predictionResult').removeClass('d-none alert-success').addClass('alert-danger').text('Error predicting price');
+                showToast(ToastLevel.Error, 'Offer', 'Predicting prices failed');
+            } else {
+                const responseData = await response.json();
+                $('#predictionResult').removeClass('d-none alert-danger').addClass('alert-success').html('Price of a property with selected features will be:<br>' + formatPrice(responseData['predicted_price']));
+                showToast(ToastLevel.Success, 'Offer', 'Predicting prices was successful');
+            }
+        }
+    </script>
+{% endblock javascripts %}

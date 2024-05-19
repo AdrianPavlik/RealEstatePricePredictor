@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content="PricePredictor"/>
+    <meta name="author" content="Adrián Pavlik"/>
+
+    <title>
+        {% block title %}{% endblock %}
+    </title>
+
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet"/>
+    <link href="/static/assets/css/styles.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider/distribute/nouislider.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+
+    <!-- Specific Page CSS goes HERE  -->
+    {% block stylesheets %}
+        <style>
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                    opacity: 0.75;
+                }
+                50% {
+                    transform: scale(1.25);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 0.75;
+                }
+            }
+
+            .pulsing-circle {
+                animation: pulse 2s infinite ease-in-out;
+            }
+        </style>
+    {% endblock stylesheets %}
+
+</head>
+<body class="sb-nav-fixed">
+
+{% include 'includes/navigation.html' %}
+
+<div id="layoutSidenav">
+    <div id="layoutSidenav_nav">
+
+        {% include 'includes/sidebar.html' %}
+
+    </div>
+    <div id="layoutSidenav_content">
+
+        {% block content %}{% endblock content %}
+
+        {% include 'includes/footer.html' %}
+
+    </div>
+</div>
+
+{% include 'includes/scripts.html' %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
+
+</body>
+</html>

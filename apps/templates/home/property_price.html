@@ -1,0 +1,630 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Price Predictor - Average Price {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <style>
+        .dropdown-item.active {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .noUi-tooltip {
+            display: none;
+            font-size: 10px;
+            padding: 4px 8px;
+        }
+
+        .tooltip-visible .noUi-tooltip {
+            display: block;
+        }
+
+        .noUi-handle {
+            cursor: pointer;
+        }
+
+        .noUi-handle:hover {
+            cursor: grab;
+        }
+
+        .noUi-handle:active {
+            cursor: grabbing;
+        }
+
+        .form-check-label, .form-check-input {
+            cursor: pointer;
+        }
+
+        input[type="text"] {
+            background-color: transparent;
+            border: none;
+            color: #000;
+            text-align: center;
+            width: 100px;
+        }
+
+        input[type="text"]:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"]:focus {
+            background-color: #fff;
+            outline: none;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+    <main>
+        <div class="container mt-5 shadow p-3"
+             style="background-color: rgba(240, 240, 240, 0.55); border-radius: 15px;">
+            <div class="col-md-12">
+                <h5 class="text-center mb-3">Filters for Average Price</h5>
+                <div>
+                    <div class="d-flex flex-row">
+                        <label for="averagePricePer" class="form-label mt-auto" style="min-width: 110px">Price
+                            per</label>
+                        <select id="averagePricePer" class="form-select">
+                            <option value="months">Months</option>
+                            <option value="year_of_construction">Year of construction</option>
+                            <option value="number_of_rooms">Number of rooms</option>
+                            <option value="cities_top_10">Top 10 cities (cities with most values)</option>
+                            <option value="cities_worst_10">Worst 10 cities (cities with the least values)</option>
+                            <option value="age">Property age</option>
+                        </select>
+                    </div>
+                    <div class="d-flex flex-row mt-2">
+                        <label for="startDate" class="form-label mt-auto" style="min-width: 110px">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" min="{{ database_stats.min_date }}"
+                               max="{{ database_stats.max_date }}">
+                    </div>
+                    <div class="d-flex flex-row mt-2">
+                        <label for="endDate" class="form-label mt-auto" style="min-width: 110px">End Date</label>
+                        <input type="date" class="form-control" id="endDate" min="{{ database_stats.min_date }}"
+                               max="{{ database_stats.max_date }}">
+                    </div>
+                </div>
+                <div class="d-flex flex-row mt-2">
+                    <label for="geographicSelect" class="form-label mt-auto" style="min-width: 110px">City</label>
+                    <select id="geographicSelect" class="form-select">
+                        <option selected>Choose...</option>
+                        {% for city, coords in database_stats.city_locations.items %}
+                            <option value="{{ city }}" data-latitude="{{ coords.latitude }}"
+                                    data-longitude="{{ coords.longitude }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="d-flex flex-row mt-2">
+                    <label for="propertyTypeSelect" class="form-label mt-auto" style="min-width: 110px">Property
+                        Type</label>
+                    <select id="propertyTypeSelect" class="form-select">
+                        <option selected>Choose...</option>
+                        {% for type in database_stats.unique_types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="d-flex flex-row mt-2">
+                    <label for="featuresDropdown" class="form-label mt-auto" style="min-width: 110px">Features</label>
+                    <div class="dropdown" id="featuresDropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="featureDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Select
+                        </button>
+                        <ul class="dropdown-menu" style="overflow-x: auto; overflow-y: hidden;"
+                            aria-labelledby="featureDropdown">
+                            <li><a class="dropdown-item" href="#" data-value="lift">Lift</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="parking_space">Parking Space</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="basement">Basement</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="gazebo">Gazebo</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="terrace">Terrace</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="pool">Pool</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="air_conditioning">Air Conditioning</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#" data-value="sauna">Sauna</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="balcony">Balcony</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="garage">Garage</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="loggia">Loggia</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="garden">Garden</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="fireplace">Fireplace</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="bathroom">Bathroom</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="new_building">New Building</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-row mt-2">
+                    <label class="form-label mt-auto" style="min-width: 110px">Offer Type</label>
+                    <div class="d-flex flex-row">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="offerType" id="offerType1" value="Predaj"
+                                   checked>
+                            <label class="form-check-label" for="offerType1">
+                                Predaj
+                            </label>
+                        </div>
+                        <div class="form-check ms-2">
+                            <input class="form-check-input" type="radio" name="offerType" id="offerType2"
+                                   value="Prenájom">
+                            <label class="form-check-label" for="offerType2">
+                                Prenájom
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="priceSlider" class="form-label mt-2">Price Range
+                    <input type="text" id="minPrice" class="form-control d-inline-block" style="width: 200px;"
+                           aria-label="Minimum price" min="{{ database_stats.min_price }}">
+                    -
+                    <input type="text" id="maxPrice" class="form-control d-inline-block" style="width: 200px;"
+                           aria-label="Maximum price" max="{{ database_stats.max_price }}">
+                </label>
+                <div id="priceSlider" class="slider m-auto" style="max-width: 90%;"></div>
+
+                <div class="mt-4 d-flex flex-row justify-content-end">
+                    <button type="button" class="btn btn-secondary me-2" onclick="resetFilters()">Reset Filters</button>
+                    <button type="button" class="btn btn-primary" onclick="generateGraph()">Generate</button>
+                </div>
+            </div>
+        </div>
+        <div class="container p-3 mt-5">
+            <canvas id="chart" width="2000s" height="400"></canvas>
+        </div>
+    </main>
+    <!-- Popup toast body -->
+    <div class="toast-container position-fixed end-0 bottom-0 mb-5-" aria-live="polite" aria-atomic="true"
+         style="width: 300px; max-height: 200px;">
+    </div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdownItems = document.querySelectorAll('.dropdown-item');
+            const dropdown = document.getElementById('featureDropdown');
+            const selectedFeatures = [];
+
+            dropdownItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const value = this.getAttribute('data-value');
+                    const index = selectedFeatures.indexOf(value);
+
+                    if (index > -1) {
+                        selectedFeatures.splice(index, 1);
+                        this.classList.remove('active');
+                    } else {
+                        selectedFeatures.push(value);
+                        this.classList.add('active');
+                    }
+
+                    dropdown.textContent = selectedFeatures.length > 0 ? `Selected: ${selectedFeatures.length}` : 'Select';
+                });
+            });
+
+            var menu = document.querySelector('#featureDropdown + .dropdown-menu');
+            menu.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+
+            var slider = document.getElementById('priceSlider');
+            var minPriceInput = document.getElementById('minPrice');
+            var maxPriceInput = document.getElementById('maxPrice');
+
+            noUiSlider.create(slider, {
+                start: [{{ database_stats.min_price }}, {{ database_stats.max_price }}],
+                connect: true,
+                range: {
+                    'min': {{ database_stats.min_price }},
+                    'max': {{ database_stats.max_price }}
+                },
+                tooltips: true,
+                format: wNumb({
+                    decimals: 0,
+                    thousand: ',',
+                    suffix: ' €'
+                })
+            });
+
+            slider.noUiSlider.on('update', function (values, handle) {
+                minPriceInput.value = formatNumber(values[0]);
+                maxPriceInput.value = formatNumber(values[1]);
+            });
+
+            slider.noUiSlider.on('start', function (values, handle) {
+                slider.querySelectorAll('.noUi-tooltip')[handle].style.display = 'block';
+            });
+
+            slider.noUiSlider.on('end', function () {
+                slider.querySelectorAll('.noUi-tooltip').forEach(function (tooltip) {
+                    tooltip.style.display = 'none';
+                });
+            });
+
+            minPriceInput.addEventListener('change', function () {
+                slider.noUiSlider.set([this.value, null]);
+            });
+
+            maxPriceInput.addEventListener('change', function () {
+                slider.noUiSlider.set([null, this.value]);
+            });
+
+            [minPriceInput, maxPriceInput].forEach(input => {
+                input.addEventListener('focus', function () {
+                    this.value = unformatNumber(this.value); // Remove formatting when focused
+                });
+
+                input.addEventListener('blur', function () {
+                    if (this.value.includes("€")) {
+                        this.value = this.value;
+                    } else {
+                        this.value = formatNumber(this.value);
+                    }
+                });
+
+                input.addEventListener('keypress', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        this.blur();
+                    }
+                });
+            });
+        });
+
+        function cleanPrice(price) {
+            return price.replace(/[€, ]/g, '');
+        }
+
+        function generateSQL() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const geographicArea = document.getElementById('geographicSelect').value;
+            const propertyType = document.getElementById('propertyTypeSelect').value;
+            const offerType = document.querySelector('input[name="offerType"]:checked').value;
+            const priceRange = document.getElementById('priceSlider').noUiSlider.get(); // Returns an array of [min, max]
+
+            let whereClauses = [];
+
+            if (startDate) {
+                whereClauses.push(`SUBSTR(date_posted, 7, 4) || '-' || SUBSTR(date_posted, 4, 2) || '-' || SUBSTR(date_posted, 1, 2) >= '${startDate}'`);
+            }
+            if (endDate) {
+                whereClauses.push(`SUBSTR(date_posted, 7, 4) || '-' || SUBSTR(date_posted, 4, 2) || '-' || SUBSTR(date_posted, 1, 2) <= '${endDate}'`);
+            }
+            if (geographicArea && geographicArea !== "Choose...") {
+                whereClauses.push(`city = '${geographicArea}'`);
+            }
+            if (propertyType && propertyType !== "Choose...") {
+                whereClauses.push(`type = '${propertyType}'`);
+            }
+            if (offerType) {
+                whereClauses.push(`offer_type = '${offerType}'`);
+            }
+            if (priceRange && priceRange.length === 2) {
+                whereClauses.push(`CAST(price AS INTEGER) >= ${cleanPrice(priceRange[0])} AND CAST(price AS INTEGER) <= ${cleanPrice(priceRange[1])}`);
+            }
+
+            const featureItems = document.querySelectorAll('.dropdown-menu .dropdown-item.active');
+            featureItems.forEach(item => {
+                const feature = item.getAttribute('data-value');
+                whereClauses.push(`${feature} = 1`);
+            });
+
+            // Construct the SQL query
+            let sql = "SELECT * FROM properties";
+            if (whereClauses.length > 0) {
+                sql += " WHERE " + whereClauses.join(' AND ');
+            }
+            return sql;
+        }
+
+        async function generateGraph() {
+            try {
+                let sql = generateSQL();
+                const response = await fetch('get-diagram-values/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // Ensure CSRF token for Django
+                    },
+                    body: JSON.stringify({'sql_query': sql})
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+
+                const data = await response.json();
+                updateGraph(data);
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        }
+
+        function parseDate(dateStr) {
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            } else {
+                console.error('Date string is not in the expected format:', dateStr);
+                return null;
+            }
+        }
+
+        function aggregateDataByMonth(data) {
+            const grouped = data.reduce((acc, item) => {
+                const price = parseInt(item.price)
+                if (typeof price !== 'number' || isNaN(price)) {
+                    return acc;
+                }
+                const date = parseDate(item.date_posted);
+                if (date) {
+                    const month = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+                    if (!acc[month]) {
+                        acc[month] = {total: 0, count: 0};
+                    }
+                    acc[month].total += price;
+                    acc[month].count += 1;
+                }
+                return acc;
+            }, {});
+
+            return Object.keys(grouped).map(month => ({
+                a: month,
+                b: grouped[month].total / grouped[month].count
+            })).sort((a, b) => {
+                return a.a.localeCompare(b.a);
+            })
+        }
+
+        function aggregateDataByYearOfConstruction(data) {
+            const grouped = data.reduce((acc, item) => {
+                const price = parseInt(item.price);
+                const year_of_construction = item.year_of_construction;
+
+                if (!isNaN(price) && year_of_construction) {
+                    if (!acc[year_of_construction]) {
+                        acc[year_of_construction] = {total: 0, count: 0};
+                    }
+                    acc[year_of_construction].total += price;
+                    acc[year_of_construction].count += 1;
+                }
+                return acc;
+            }, {});
+
+            return Object.keys(grouped).map(year => ({
+                a: year,
+                b: grouped[year].total / grouped[year].count
+            })).sort((a, b) => {
+                return a.a.localeCompare(b.a);
+            });
+        }
+
+        function aggregateDataByNumberOfRooms(data) {
+            const grouped = data.reduce((acc, item) => {
+                const price = parseInt(item.price);
+                const number_of_rooms = parseInt(item.number_of_rooms);
+
+                if (!isNaN(price) && number_of_rooms) {
+                    if (!acc[number_of_rooms]) {
+                        acc[number_of_rooms] = {total: 0, count: 0};
+                    }
+                    acc[number_of_rooms].total += price;
+                    acc[number_of_rooms].count += 1;
+                }
+                return acc;
+            }, {});
+
+            return Object.keys(grouped).map(roomCount => ({
+                a: roomCount,
+                b: grouped[roomCount].total / grouped[roomCount].count
+            })).sort((a, b) => {
+                return parseInt(a.a) - parseInt(b.a);
+            });
+        }
+
+        function aggregateDataByCities(data, type) {
+            const grouped = data.reduce((acc, item) => {
+                const city = item.city;
+                if (city) {
+                    if (!acc[city]) {
+                        acc[city] = {total: 0, count: 0};
+                    }
+                    acc[city].total += parseInt(item.price) || 0;
+                    acc[city].count += 1;
+                }
+                return acc;
+            }, {});
+
+            let sortedCities = Object.keys(grouped)
+                .map(city => ({
+                    a: city,
+                    b: grouped[city].total / grouped[city].count,
+                    count: grouped[city].count
+                }));
+
+            if (type === 'top') {
+                sortedCities = sortedCities.sort((a, b) => b.count - a.count).slice(0, 10);
+            } else if (type === 'worst') {
+                sortedCities = sortedCities.sort((a, b) => a.count - b.count).slice(0, 10);
+            }
+
+            return sortedCities;
+        }
+
+        function aggregateDataByAge(data) {
+            const currentYear = new Date().getFullYear();
+            const groupedByAge = data.reduce((acc, item) => {
+                const yearOfConstruction = parseInt(item.year_of_construction, 10);
+                if (isNaN(yearOfConstruction)) {
+                    return acc;
+                }
+
+                const age = currentYear - yearOfConstruction;
+                const ageBracket = determineAgeBracket(age);
+
+                if (!acc[ageBracket]) {
+                    acc[ageBracket] = {total: 0, count: 0, prices: []};
+                }
+
+                const price = parseInt(item.price, 10);
+                if (!isNaN(price)) {
+                    acc[ageBracket].total += price;
+                    acc[ageBracket].prices.push(price);
+                    acc[ageBracket].count += 1;
+                }
+                return acc;
+            }, {});
+
+            return Object.keys(groupedByAge).map(ageBracket => {
+                const data = groupedByAge[ageBracket];
+                return {
+                    a: ageBracket,
+                    b: data.total / data.count,
+                    count: data.count
+                };
+            }).sort((a, b) => a.a.localeCompare(b.a));
+        }
+
+        function updateGraph(data) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (window.myChart) window.myChart.destroy();
+            const averagePricePer = document.getElementById('averagePricePer').value;
+
+            let chartType
+            let aggregatedData
+            switch (averagePricePer) {
+                case 'months':
+                    aggregatedData = aggregateDataByMonth(data['diagram_values'])
+                    chartType = 'line'
+                    break
+                case 'year_of_construction':
+                    aggregatedData = aggregateDataByYearOfConstruction(data['diagram_values'])
+                    chartType = 'line'
+                    break
+                case 'number_of_rooms':
+                    aggregatedData = aggregateDataByNumberOfRooms(data['diagram_values'])
+                    chartType = 'line'
+                    break
+                case 'cities_top_10':
+                    aggregatedData = aggregateDataByCities(data['diagram_values'], 'top')
+                    chartType = 'line'
+                    break
+                case 'cities_worst_10':
+                    aggregatedData = aggregateDataByCities(data['diagram_values'], 'worst')
+                    chartType = 'line'
+                    break
+                case 'age':
+                    aggregatedData = aggregateDataByAge(data['diagram_values'])
+                    chartType = 'line'
+                    break
+                default:
+                    aggregatedData = aggregateDataByMonth(data['diagram_values'])
+                    chartType = 'line'
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: aggregatedData.map(d => d.a),
+                    datasets: [{
+                        label: `Priemerná cena`,
+                        data: aggregatedData.map(d => d.b),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    if (value >= 1000000) {
+                                        return value / 1000000 + 'M';
+                                    } else if (value >= 1000) {
+                                        return value / 1000 + 'k';
+                                    }
+                                    return value;
+                                }
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                            },
+                            ticks: {
+                                maxRotation: 90,
+                                minRotation: 80,
+                                callback: function (value, index, values) {
+                                    return index % 10 === 0 ? value : '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x'
+                            },
+                            zoom: {
+                                enabled: true,
+                                mode: 'x'
+                            }
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function resetFilters() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const geographicSelect = document.getElementById('geographicSelect');
+            const propertyTypeSelect = document.getElementById('propertyTypeSelect');
+            const offerTypeRadios = document.querySelectorAll('input[name="offerType"]');
+            const featureDropdown = document.getElementById('featureDropdown');
+            const featureDropdownItems = document.querySelectorAll('#featuresDropdown .dropdown-item');
+            const priceSlider = document.getElementById('priceSlider').noUiSlider;
+            const averagePricePer = document.getElementById('averagePricePer');
+            const defaultMinPrice = {{ database_stats.min_price }};
+            const defaultMaxPrice = {{ database_stats.max_price }};
+
+            startDateInput.value = '';
+            endDateInput.value = '';
+            geographicSelect.selectedIndex = 0;
+            propertyTypeSelect.selectedIndex = 0;
+
+            offerTypeRadios.forEach(radio => {
+                radio.checked = radio.value === 'Predaj';
+            });
+
+            featureDropdown.textContent = 'Select';
+            featureDropdownItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+            averagePricePer.value = 'months'
+
+            priceSlider.set([defaultMinPrice, defaultMaxPrice]);
+
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+        }
+    </script>
+{% endblock javascripts %}

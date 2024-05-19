@@ -1,0 +1,49 @@
+{% load static %}
+
+<div class="d-flex position-relative" style="height: 100%; width: 225px;">
+    <nav class="sb-sidenav accordion sb-sidenav-dark w-100" id="sidenavAccordion">
+        <div class="d-flex flex-column justify-content-between h-100">
+            <div class="sb-sidenav-menu">
+                <div class="nav">
+                    <div class="sb-sidenav-menu-heading"><i class="fas fa-desktop"></i> Dashboard</div>
+                    <a class="nav-link mx-3 {% if 'predict' in segment %} active {% endif %}" href="/">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
+                        Predict
+                    </a>
+                    <div class="sb-sidenav-menu-heading"><i class="fas fa-chart-pie"></i> Diagrams</div>
+                    <a class="nav-link mx-3 {% if 'average_price' in segment %} active {% endif %}"
+                       href="/average_price">
+                        <div class="sb-nav-link-icon"><i class="fas fa-money-bill-alt"></i></div>
+                        Average Price
+                    </a>
+                    <a class="nav-link mx-3 {% if 'interactive_map' in segment %} active {% endif %}"
+                       href="/interactive_map">
+                        <div class="sb-nav-link-icon"><i class="fas fa-map-marked-alt"></i></div>
+                        Interactive Map
+                    </a>
+                    <a class="nav-link mx-3 {% if 'data_analysis' in segment %} active {% endif %}"
+                       href="/data_analysis">
+                        <div class="sb-nav-link-icon"><i class="fas fa-project-diagram"></i></div>
+                        Data Analysis
+                    </a>
+                    <div class="sb-sidenav-menu-heading"><i class="fas fa-chart-pie"></i> Database</div>
+                    <a class="nav-link mx-3 {% if 'stored_data' in segment %} active {% endif %}" href="/stored_data">
+                        <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                        Stored Data
+                    </a>
+                    <hr class="dropdown-divider"/>
+                    <a class="nav-link {% if 'settings' in segment %} active {% endif %}" href="/settings">
+                        <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
+                        Settings
+                    </a>
+                </div>
+            </div>
+            <div class="sb-sidenav-footer small">
+                <div class="small">
+                    <a class="link-info" target="_blank" href="https://www.linkedin.com/in/adrian-pavlik">© Adrián
+                        Pavlik</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
