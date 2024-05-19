@@ -1,0 +1,28 @@
+version: '3.11'
+services:
+  real-estate-prediction-app:
+    container_name: real-estate-prediction-app
+    restart: always
+    env_file: .env
+    ports:
+      - "8000:8000"
+    build: .
+    networks:
+      - db_network
+      - web_network
+  nginx:
+    container_name: nginx
+    restart: always
+    image: "nginx:latest"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - web_network
+    depends_on:
+      - real-estate-prediction-app
+networks:
+  db_network:
+    driver: bridge
+  web_network:
+    driver: bridge
+ 
