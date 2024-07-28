@@ -32,14 +32,6 @@ The goal of this project is to offer a real-time analytical tool that assists us
 - **Python 3.10 or newer**: [official Python website](https://www.python.org/downloads/)
 - **Docker**: [official Docker website](https://www.docker.com/products/docker-desktop/)
 
-### Deploy
-
-```cmd
-docker-compose up --build -d
-```
-
-App will be run on port http://localhost:8000/
-
 ### Development
 
 ```cmd
